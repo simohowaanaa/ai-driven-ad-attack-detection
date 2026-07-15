@@ -1,8 +1,8 @@
 # Documentation des attaques Active Directory — PFA SOC Dataprotect
 
 > **Projet de Fin d'Année** — Business Unit Security Intelligence (SOC)
-> **Binôme :** Simo Howaana & Chafak Othmane
-> **Encadrement :** Dataprotect
+> **Binôme :** Maimouni Mohammed & Chafak Othmane
+> **Encadrant Dataprotect :** Benkirane Abbes
 > **Objectif global :** Documenter 30+ attaques AD → les simuler pour générer des logs → matcher les règles de détection SIEM (QRadar / Elastic) → développer un **agent IA au niveau du DC** pour la détection.
 
 ---
