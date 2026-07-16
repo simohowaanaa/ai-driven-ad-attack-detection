@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Cles privees / secrets (ne jamais committer)
+*.pem
+*.key
+goad-host_key.pem
