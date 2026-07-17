@@ -1,6 +1,8 @@
-# 🧪 Simulation & Lab — Phase 2 du PFA
+# 🧪 Simulation & Lab — Phases 2 & 3 du PFA
 
-Ce dossier contient tout le nécessaire pour **construire le lab Active Directory** et **rejouer les attaques** documentées dans [`../docs/`](../docs/).
+Ce dossier contient tout le nécessaire pour **construire le lab Active Directory** (Phase 2), y **brancher un SIEM Wazuh** (Phase 3), et **rejouer les attaques** documentées dans [`../docs/`](../docs/).
+
+**Avancement :** ✅ Phase 2 (lab GOAD-Light sur Azure) · ✅ Phase 3 (SIEM Wazuh + 3 agents) · ⬜ Phase 4 (attaques).
 
 ## 📌 Deux approches testées
 
@@ -15,7 +17,8 @@ Ce dossier contient tout le nécessaire pour **construire le lab Active Director
 
 | Fichier | Description |
 |---------|-------------|
-| [`02-azure-goad.md`](02-azure-goad.md) ⭐ | **Guide retenu** : déployer GOAD sur une VM Linux Azure |
+| [`02-azure-goad.md`](02-azure-goad.md) ⭐ | **Guide retenu (Phase 2)** : déployer GOAD sur une VM Linux Azure |
+| [`03-wazuh-siem.md`](03-wazuh-siem.md) 🛡️ | **Phase 3** : brancher le SIEM Wazuh (déploiement + accès + dépannage) |
 | [`azure-goad-setup.sh`](azure-goad-setup.sh) | Script d'install (VirtualBox/Vagrant/Ansible/GOAD) sur la VM Azure |
 | [`01-lab-setup.md`](01-lab-setup.md) | Guide local (abandonné) — VirtualBox + WSL2 |
 | [`wsl-setup.sh`](wsl-setup.sh) · [`wsl-fix-python312.sh`](wsl-fix-python312.sh) | Scripts de l'approche locale (abandonnée) |
@@ -33,16 +36,20 @@ Ce dossier contient tout le nécessaire pour **construire le lab Active Director
         │   │  (AD/DC)🎯 │  │  (enfant)  │  │  MSSQL)    │    │
         │   └────────────┘  └────────────┘  └────────────┘    │
         │        Réseau host-only 192.168.56.0/24             │
-        │   ┌──────────────┐  (Phase 3)                       │
-        │   │ Wazuh / ELK  │  ← collecte logs (à venir)       │
+        │   ┌──────────────┐  ✅ Phase 3                      │
+        │   │  Wazuh  .51   │  ← SIEM : collecte + détection   │
+        │   │ (3 agents AD) │     (indexer+manager+dashboard)  │
         │   └──────────────┘                                  │
         └────────────────────────────────────────────────────┘
 ```
+
+> 🛡️ **Phase 3 faite :** Wazuh déployé (VM `192.168.56.51`) avec un agent sur chaque DC/serveur. Détails → [`03-wazuh-siem.md`](03-wazuh-siem.md).
 
 ## Environnement (déployé le 2026-07-16)
 
 - **Hôte :** VM Azure `goad-host`, Ubuntu 24.04, Standard_E4s_v3 (4 vCPU, 32 Go), nested virt ✅.
 - **Base vulnérable :** GOAD-Light (Orange Cyberdefense) — 3 VM Windows Server (DC01, DC02, SRV02).
 - **Instance GOAD :** `fba132-goad-light-virtualbox` · réseau 192.168.56.0/24.
+- **SIEM (Phase 3, déployé le 2026-07-17) :** Wazuh sur `192.168.56.51` + agents sur les 3 machines.
 
 > ⚠️ **Rappel légal/éthique :** ce lab est **isolé**. Les attaques ne se pratiquent QUE dans cet environnement, jamais sur un réseau réel.

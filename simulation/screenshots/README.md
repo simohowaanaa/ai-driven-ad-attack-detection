@@ -13,6 +13,7 @@ Range ici les captures du montage du lab (pour le rapport PFA / GitHub).
 | `azure-03-nested-virt.png` | `grep -c vmx /proc/cpuinfo` > 0 (nested virt OK) |
 | `azure-04-tools-installed.png` | Versions VirtualBox / Vagrant / Ansible |
 | `azure-05-goad-deployed.png` | Récap GOAD déployé + `vagrant status` (VM running) |
-| `azure-06-attack-kerberoast.png` | Première attaque réussie depuis Kali/outils |
+| `azure-06-wazuh-dashboard.png` | **Phase 3** — dashboard Wazuh : 3 agents actifs (100 % coverage) |
+| `azure-07-attack-kerberoast.png` | *(à venir, Phase 4)* Première attaque + alerte Wazuh |
 
 > ⚠️ Le repo est **privé** : pas de souci pour l'IP publique. Si un jour tu le rends public, pense à **masquer l'IP** sur les captures.
