@@ -2,7 +2,7 @@
 
 Ce dossier contient tout le nécessaire pour **construire le lab Active Directory** (Phase 2), y **brancher un SIEM Wazuh** (Phase 3), et **rejouer les attaques** documentées dans [`../docs/`](../docs/).
 
-**Avancement :** ✅ Phase 2 (lab GOAD-Light sur Azure) · ✅ Phase 3 (SIEM Wazuh + 3 agents) · ⬜ Phase 4 (attaques).
+**Avancement :** ✅ Phase 2 (lab GOAD-Light sur Azure) · ✅ Phase 3 (SIEM Wazuh + 3 agents) · 🔄 Phase 4 (attaques & détection — en cours).
 
 ## 📌 Deux approches testées
 
@@ -19,6 +19,7 @@ Ce dossier contient tout le nécessaire pour **construire le lab Active Director
 |---------|-------------|
 | [`02-azure-goad.md`](02-azure-goad.md) ⭐ | **Guide retenu (Phase 2)** : déployer GOAD sur une VM Linux Azure |
 | [`03-wazuh-siem.md`](03-wazuh-siem.md) 🛡️ | **Phase 3** : brancher le SIEM Wazuh (déploiement + accès + dépannage) |
+| [`04-attaques-detection.md`](04-attaques-detection.md) ⚔️ | **Phase 4** : simuler les attaques + vérifier la détection Wazuh (fiche par attaque) |
 | [`azure-goad-setup.sh`](azure-goad-setup.sh) | Script d'install (VirtualBox/Vagrant/Ansible/GOAD) sur la VM Azure |
 | [`01-lab-setup.md`](01-lab-setup.md) | Guide local (abandonné) — VirtualBox + WSL2 |
 | [`wsl-setup.sh`](wsl-setup.sh) · [`wsl-fix-python312.sh`](wsl-fix-python312.sh) | Scripts de l'approche locale (abandonnée) |
