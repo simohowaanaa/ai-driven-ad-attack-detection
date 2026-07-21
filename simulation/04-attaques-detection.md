@@ -10,7 +10,7 @@ Chaque attaque a **son propre fichier** dans [`attaques/`](attaques/), avec les 
 | # | Attaque | MITRE | Fiche | Simulée | Détectée Wazuh |
 |---|---------|-------|-------|:-------:|:--------------:|
 | 01 | Kerberoasting | T1558.003 | [`attaques/01-kerberoasting.md`](attaques/01-kerberoasting.md) | ✅ | ✅ (rule 92652) |
-| 02 | AS-REP Roasting | T1558.004 | *à venir* | ⬜ | ⬜ |
+| 02 | AS-REP Roasting | T1558.004 | [`attaques/02-asrep-roasting.md`](attaques/02-asrep-roasting.md) | ✅ | ⚠️ angle mort (4768 non audité) |
 | 03 | DCSync | T1003.006 | *à venir* | ⬜ | ⬜ |
 | 04 | Password Spray | T1110.003 | *à venir* | ⬜ | ⬜ |
 
