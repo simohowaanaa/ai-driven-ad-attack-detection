@@ -1,34 +1,67 @@
-# AI-Driven Detection of Active Directory Attacks in a SOC
+# 🛡️ Détection d'attaques Active Directory par IA — Projet SOC
 
-> End-of-studies project (PFA) — Security Operations Center (SOC) internship at **Dataprotect**.
+> **Projet de Fin d'Année (PFA)** — Stage au **Security Operations Center (SOC)** de **Dataprotect** (Business Unit Security Intelligence).
 
-An AI-based agent that detects Active Directory (AD) attacks. The project covers three axes:
-**documentation** of AD attack techniques, **simulation** in a controlled lab environment,
-and an **AI detection agent** that analyzes activity to identify malicious behavior.
+Concevoir une chaîne complète de **détection d'attaques Active Directory** : documenter les techniques, les rejouer dans un lab contrôlé, vérifier leur détection par un SIEM, puis construire un **agent IA** de détection au niveau du contrôleur de domaine.
+
+**Binôme :** Maimouni Mohammed & Chafak Othmane · **Encadrant Dataprotect :** Benkirane Abbes
 
 ---
 
-## 🎯 Objectives
-- Document common Active Directory attack techniques (recon, credential theft, privilege escalation, lateral movement)
-- Simulate these attacks in an isolated lab environment
-- Build an AI agent capable of detecting these attacks from logs / events
+## 🎯 Objectifs
+1. **Documenter** les principales attaques Active Directory (reconnaissance, vol d'identifiants, escalade de privilèges, mouvement latéral, persistance, trusts).
+2. **Simuler** ces attaques dans un lab isolé et générer les logs correspondants.
+3. **Détecter** les attaques via un SIEM (Wazuh) et des règles adaptées.
+4. **Automatiser** la détection avec un **agent IA** (ML / détection d'anomalies).
 
-## 🧩 Project structure
-- `docs/` — documentation of AD attack techniques
-- `simulation/` — attack simulation scripts and lab setup
-- `detection-agent/` — the AI detection agent (data processing, model, detection logic)
+---
 
-## 🛠️ Tech stack
-- **Languages:** Python
-- **Environment:** Windows / Active Directory, Linux
-- **Security:** SIEM, log analysis, Blue Team / threat detection
-- **AI:** [ex: scikit-learn / TensorFlow — à compléter]
+## 📊 État d'avancement
 
-## 🔍 Attacks covered
-- [ex: Kerberoasting, Pass-the-Hash, DCSync, ... — à compléter]
+| Phase | Description | Statut |
+|:-----:|-------------|:------:|
+| **1** | Documentation de **48 attaques AD** (MITRE ATT&CK, Event IDs, règles Sigma/QRadar/Elastic, remédiation) | ✅ **Terminé** |
+| **2** | Déploiement du lab **GOAD-Light** (AD vulnérable) sur une VM **Azure** | ✅ **Terminé** |
+| **3** | Installation du SIEM **Wazuh** + agents sur les 3 machines (collecte des logs) | ✅ **Terminé** |
+| **4** | **Simulation des attaques** + vérification de la détection Wazuh | 🔄 **En cours** |
+| **5** | Écriture de **règles de détection sur-mesure** | ⬜ À venir |
+| **6** | **Agent IA** de détection (ML / anomalies) | ⬜ À venir |
 
-## 🚀 Getting started
-```bash
-git clone https://github.com/simohowaanaa/ai-driven-ad-attack-detection.git
-cd ai-driven-ad-attack-detection
-# instructions à venir
+---
+
+## 🧩 Structure du dépôt
+
+| Dossier | Contenu |
+|---------|---------|
+| [`docs/`](docs/) | 📚 **Documentation des 48 attaques AD** — une fiche par attaque (théorie, MITRE, Event IDs, règles de détection, remédiation), classées par phase d'attaque |
+| [`simulation/`](simulation/) | 🧪 **Lab & simulations** — déploiement (GOAD sur Azure), installation Wazuh, et **fiches d'attaques rejouées** avec captures (attaque + détection) |
+
+**Points d'entrée utiles :**
+- 🗺️ [Catalogue des 48 attaques](docs/README.md)
+- 🏗️ [Guide de déploiement du lab (Azure)](simulation/02-azure-goad.md)
+- 🛡️ [Installation du SIEM Wazuh](simulation/03-wazuh-siem.md)
+- ⚔️ [Simulation des attaques & détection](simulation/04-attaques-detection.md)
+
+---
+
+## 🔥 Attaques déjà simulées & analysées (Phase 4)
+
+| # | Attaque | MITRE | Détection Wazuh |
+|---|---------|-------|-----------------|
+| 01 | [Kerberoasting](simulation/attaques/01-kerberoasting.md) | T1558.003 | ✅ Détecté (connexion attaquant, alerte niveau 6) |
+| 02 | [AS-REP Roasting](simulation/attaques/02-asrep-roasting.md) | T1558.004 | ⚠️ Angle mort identifié (audit à configurer) → justifie la Phase 5 |
+
+---
+
+## 🛠️ Stack technique
+- **Lab AD :** GOAD-Light (Orange Cyberdefense), VirtualBox, Vagrant/Ansible
+- **Infrastructure :** Microsoft Azure (VM Linux, virtualisation imbriquée)
+- **SIEM :** Wazuh (indexer + manager + dashboard, règles SOC Fortress)
+- **Outils d'attaque :** impacket, NetExec
+- **Référentiel :** MITRE ATT&CK · Windows Event Logs
+- **IA (à venir) :** détection d'anomalies / apprentissage automatique
+
+---
+
+## ⚠️ Cadre éthique
+Toutes les attaques sont réalisées **exclusivement** dans un lab **isolé et volontairement vulnérable** (GOAD), à des fins d'apprentissage et de recherche défensive. **Aucune** de ces techniques ne doit être utilisée sur un système réel sans autorisation explicite.
