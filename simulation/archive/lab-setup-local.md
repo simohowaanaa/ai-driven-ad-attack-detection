@@ -2,7 +2,7 @@
 
 > ⚠️ **APPROCHE ABANDONNÉE — ne pas suivre ce guide pour déployer.**
 > Ce montage **local** (Windows + VirtualBox + **Hyper-V** + WSL2) s'est heurté à un mur : **WinRM fondamentalement instable** dans cet empilement — les VM bootent mais Vagrant/Ansible ne les configurent pas de façon fiable (erreurs `device not ready`, `init_auth timeout`, VM injoignables par Ansible).
-> ✅ **Solution retenue et fonctionnelle : déploiement sur une VM Linux Azure** → voir **[`02-azure-goad.md`](02-azure-goad.md)**.
+> ✅ **Solution retenue et fonctionnelle : déploiement sur une VM Linux Azure** → voir **[`01-deploiement-azure.md`](../01-deploiement-azure.md)**.
 > Ce document est conservé comme **trace de la démarche** (ce qui a été tenté, le diagnostic, le pivot vers Azure) — utile pour le mémoire/soutenance.
 
 > **But :** construire un Active Directory vulnérable et isolé pour rejouer les 48 attaques et générer des logs.

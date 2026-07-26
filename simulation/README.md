@@ -1,31 +1,26 @@
-# 🧪 Simulation & Lab — Phases 2 & 3 du PFA
+# 🧪 Simulation & Lab — Phases 2 à 4 du PFA
 
-Ce dossier contient tout le nécessaire pour **construire le lab Active Directory** (Phase 2), y **brancher un SIEM Wazuh** (Phase 3), et **rejouer les attaques** documentées dans [`../docs/`](../docs/).
+Ce dossier contient tout le nécessaire pour **construire le lab Active Directory** (Phase 2), y **brancher un SIEM Wazuh** (Phase 3), et **rejouer les attaques** documentées dans [`../docs/`](../docs/) en vérifiant leur détection (Phase 4).
 
-**Avancement :** ✅ Phase 2 (lab GOAD-Light sur Azure) · ✅ Phase 3 (SIEM Wazuh + 3 agents) · 🔄 Phase 4 (attaques & détection — en cours).
+**Avancement :** ✅ Phase 2 (lab GOAD-Light sur Azure) · ✅ Phase 3 (SIEM Wazuh + 3 agents) · 🔄 Phase 4 (simulation des attaques & détection — en cours).
 
-## 📌 Deux approches testées
+---
 
-| Approche | Guide | Statut |
-|----------|-------|--------|
-| **Local** (Windows + VirtualBox + WSL2) | [`01-lab-setup.md`](01-lab-setup.md) | ❌ **Abandonnée** — WinRM instable à cause de l'empilement Hyper-V/VirtualBox |
-| **Azure** (VM Linux + VirtualBox) ⭐ | [`02-azure-goad.md`](02-azure-goad.md) | ✅ **Fonctionnelle** — GOAD-Light déployé avec succès |
+## 📂 Contenu du dossier
 
-> **Pourquoi ce choix ?** Sur Windows, WSL2 impose Hyper-V, qui rend VirtualBox+WinRM instables (les VM bootent mais Vagrant/Ansible ne les configurent pas de façon fiable). Sur une **VM Linux Azure**, tout tourne en **natif** → déploiement fiable. Le guide local est conservé comme **trace de la démarche** (utile pour le mémoire/soutenance).
-
-## Contenu
-
-| Fichier | Description |
-|---------|-------------|
-| [`02-azure-goad.md`](02-azure-goad.md) ⭐ | **Guide retenu (Phase 2)** : déployer GOAD sur une VM Linux Azure |
-| [`03-wazuh-siem.md`](03-wazuh-siem.md) 🛡️ | **Phase 3** : brancher le SIEM Wazuh (déploiement + accès + dépannage) |
-| [`04-attaques-detection.md`](04-attaques-detection.md) ⚔️ | **Phase 4** : simuler les attaques + vérifier la détection Wazuh (fiche par attaque) |
+| Fichier / dossier | Description |
+|-------------------|-------------|
+| [`01-deploiement-azure.md`](01-deploiement-azure.md) 🏗️ | **Phase 2** — déployer le lab GOAD-Light sur une VM Linux Azure |
+| [`02-siem-wazuh.md`](02-siem-wazuh.md) 🛡️ | **Phase 3** — installer le SIEM Wazuh (déploiement + accès + dépannage) |
+| [`03-attaques.md`](03-attaques.md) ⚔️ | **Phase 4** — index des attaques simulées + roadmap + détection Wazuh |
+| [`attaques/`](attaques/) | 📁 **Une fiche par attaque** (avec captures intégrées) + le [template](attaques/00-TEMPLATE.md) |
 | [`azure-goad-setup.sh`](azure-goad-setup.sh) | Script d'install (VirtualBox/Vagrant/Ansible/GOAD) sur la VM Azure |
-| [`01-lab-setup.md`](01-lab-setup.md) | Guide local (abandonné) — VirtualBox + WSL2 |
-| [`wsl-setup.sh`](wsl-setup.sh) · [`wsl-fix-python312.sh`](wsl-fix-python312.sh) | Scripts de l'approche locale (abandonnée) |
-| [`screenshots/`](screenshots/) | Captures du montage du lab |
+| [`screenshots/`](screenshots/) | 📸 Captures du lab et des attaques |
+| [`archive/`](archive/) | 🗄️ Approche locale **abandonnée** (conservée comme trace de la démarche) |
 
-## Architecture du lab (retenue — Azure)
+---
+
+## 🏗️ Architecture du lab (Azure)
 
 ```
         VM Azure Linux (Ubuntu 24.04 · Standard_E4s_v3 · 32 Go)
@@ -33,24 +28,30 @@ Ce dossier contient tout le nécessaire pour **construire le lab Active Director
         │   VirtualBox (natif)                                │
         │   ┌────────────┐  ┌────────────┐  ┌────────────┐    │
         │   │   DC01     │  │   DC02     │  │  SRV02     │    │
-        │   │ sevenking. │  │  north.    │  │ (membre +  │    │
-        │   │  (AD/DC)🎯 │  │  (enfant)  │  │  MSSQL)    │    │
-        │   └────────────┘  └────────────┘  └────────────┘    │
+        │   │ kingslding │  │ winterfell │  │ castelblack│    │
+        │   │  .10       │  │  .11       │  │  .22 (MSSQL)│   │
+        │   └─────┬──────┘  └─────┬──────┘  └─────┬──────┘    │
+        │         │ agent         │ agent         │ agent     │
+        │         └───────────────┼───────────────┘           │
+        │                  ┌──────▼───────┐  ✅ Phase 3       │
+        │                  │  Wazuh  .51   │  ← SIEM           │
+        │                  └───────────────┘                  │
         │        Réseau host-only 192.168.56.0/24             │
-        │   ┌──────────────┐  ✅ Phase 3                      │
-        │   │  Wazuh  .51   │  ← SIEM : collecte + détection   │
-        │   │ (3 agents AD) │     (indexer+manager+dashboard)  │
-        │   └──────────────┘                                  │
         └────────────────────────────────────────────────────┘
+                  ▲ SSH + tunnel (depuis le PC)
 ```
 
-> 🛡️ **Phase 3 faite :** Wazuh déployé (VM `192.168.56.51`) avec un agent sur chaque DC/serveur. Détails → [`03-wazuh-siem.md`](03-wazuh-siem.md).
+- **`sevenkingdoms.local`** : DC01 (kingslanding) · **`north.sevenkingdoms.local`** : DC02 (winterfell) — reliés par un **trust**.
+- **SRV02** (castelblack) : serveur membre + **MSSQL**.
+- **Wazuh** (192.168.56.51) : collecte les logs des 3 machines et lève les alertes.
 
-## Environnement (déployé le 2026-07-16)
+---
 
-- **Hôte :** VM Azure `goad-host`, Ubuntu 24.04, Standard_E4s_v3 (4 vCPU, 32 Go), nested virt ✅.
-- **Base vulnérable :** GOAD-Light (Orange Cyberdefense) — 3 VM Windows Server (DC01, DC02, SRV02).
-- **Instance GOAD :** `fba132-goad-light-virtualbox` · réseau 192.168.56.0/24.
-- **SIEM (Phase 3, déployé le 2026-07-17) :** Wazuh sur `192.168.56.51` + agents sur les 3 machines.
+## ⚙️ Environnement
+
+- **Hôte :** VM Azure `goad-host`, Ubuntu 24.04, Standard_E4s_v3 (4 vCPU, 32 Go), nested virt ✅ *(déployé le 2026-07-16)*.
+- **Base vulnérable :** GOAD-Light (Orange Cyberdefense), instance `fba132-goad-light-virtualbox`.
+- **SIEM :** Wazuh (indexer + manager + dashboard) + agents sur les 3 machines *(déployé le 2026-07-17)*.
+- **Outils d'attaque :** impacket (installés sur l'hôte Azure).
 
 > ⚠️ **Rappel légal/éthique :** ce lab est **isolé**. Les attaques ne se pratiquent QUE dans cet environnement, jamais sur un réseau réel.

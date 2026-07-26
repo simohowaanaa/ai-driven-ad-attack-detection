@@ -38,9 +38,9 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 
 **Points d'entrée utiles :**
 - 🗺️ [Catalogue des 48 attaques](docs/README.md)
-- 🏗️ [Guide de déploiement du lab (Azure)](simulation/02-azure-goad.md)
-- 🛡️ [Installation du SIEM Wazuh](simulation/03-wazuh-siem.md)
-- ⚔️ [Simulation des attaques & détection](simulation/04-attaques-detection.md)
+- 🏗️ [Guide de déploiement du lab (Azure)](simulation/01-deploiement-azure.md)
+- 🛡️ [Installation du SIEM Wazuh](simulation/02-siem-wazuh.md)
+- ⚔️ [Simulation des attaques & détection](simulation/03-attaques.md)
 
 ---
 
