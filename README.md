@@ -53,6 +53,7 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 | 05 | [Password Spraying](simulation/attaques/05-password-spraying.md) | T1110.003 | ✅ **Détecté** (rafale de 4625) — l'attaque témoin qui marche |
 | 06 | [DCSync](simulation/attaques/06-dcsync.md) | T1003.006 | ⚠️ Angle mort **critique** (compromission totale invisible) → justifie la Phase 5 |
 | 09 | [Pass-the-Hash](simulation/attaques/09-pass-the-hash.md) | T1550.002 | 🟡 Partielle (connexions vues mais non alertées) → baselining / IA (Phase 6) |
+| 11 | [Golden Ticket](simulation/attaques/11-golden-ticket.md) | T1558.001 | 🟡 Anomalie détectable (compte inexistant, incohérence nom/SID) → IA (Phase 6) |
 
 ---
 

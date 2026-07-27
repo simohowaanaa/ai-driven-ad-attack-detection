@@ -27,7 +27,7 @@ Ordre logique d'une intrusion (kill chain), par catégorie :
 | 08 | ADCS ESC1 (certificat) | Privilege Escalation | T1649 | *à venir* | ⬜ | — |
 | 09 | Pass-the-Hash | Lateral Movement | T1550.002 | [09](attaques/09-pass-the-hash.md) | ✅ | 🟡 partielle (4624 visibles, non alertés) |
 | 10 | MSSQL trusted links | Lateral Movement | T1210 | *à venir* | ⬜ | — |
-| 11 | Golden Ticket | Persistence | T1558.001 | *à venir* | ⬜ | — |
+| 11 | Golden Ticket | Persistence | T1558.001 | [11](attaques/11-golden-ticket.md) | ✅ | 🟡 anomalie (compte inexistant) → Phase 6 IA |
 | 12 | Abus de trust inter-domaine | Domain Trusts | T1482 | *à venir* | ⬜ | — |
 
 > Liste **réaliste** (~12 attaques solides) plutôt que « les 48 » : certaines des 48 documentées nécessitent des composants absents de GOAD-Light (Exchange, forêts multiples, PKI avancée). Ça reste une **couverture large et démonstrative**.
