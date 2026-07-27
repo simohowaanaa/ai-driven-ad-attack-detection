@@ -50,6 +50,7 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 |---|---------|-------|-----------------|
 | 01 | [Kerberoasting](simulation/attaques/01-kerberoasting.md) | T1558.003 | ✅ Détecté (connexion attaquant, alerte niveau 6) |
 | 02 | [AS-REP Roasting](simulation/attaques/02-asrep-roasting.md) | T1558.004 | ⚠️ Angle mort identifié (audit à configurer) → justifie la Phase 5 |
+| 05 | [Password Spraying](simulation/attaques/05-password-spraying.md) | T1110.003 | ✅ **Détecté** (rafale de 4625) — l'attaque témoin qui marche |
 | 06 | [DCSync](simulation/attaques/06-dcsync.md) | T1003.006 | ⚠️ Angle mort **critique** (compromission totale invisible) → justifie la Phase 5 |
 
 ---
