@@ -25,7 +25,7 @@ Ordre logique d'une intrusion (kill chain), par catégorie :
 | 06 | DCSync | Credential Access | T1003.006 | [06](attaques/06-dcsync.md) | ✅ | ⚠️ angle mort critique (4662 non audité) |
 | 07 | Abus ACL (GenericAll…) | Privilege Escalation | T1222 | *à venir* | ⬜ | — |
 | 08 | ADCS ESC1 (certificat) | Privilege Escalation | T1649 | *à venir* | ⬜ | — |
-| 09 | Pass-the-Hash | Lateral Movement | T1550.002 | *à venir* | ⬜ | — |
+| 09 | Pass-the-Hash | Lateral Movement | T1550.002 | [09](attaques/09-pass-the-hash.md) | ✅ | 🟡 partielle (4624 visibles, non alertés) |
 | 10 | MSSQL trusted links | Lateral Movement | T1210 | *à venir* | ⬜ | — |
 | 11 | Golden Ticket | Persistence | T1558.001 | *à venir* | ⬜ | — |
 | 12 | Abus de trust inter-domaine | Domain Trusts | T1482 | *à venir* | ⬜ | — |
