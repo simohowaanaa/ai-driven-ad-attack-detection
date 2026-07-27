@@ -19,7 +19,7 @@ Ordre logique d'une intrusion (kill chain), par catégorie :
 |---|---------|-----------|-------|-------|:------:|-----------------|
 | 01 | Kerberoasting | Credential Access | T1558.003 | [01](attaques/01-kerberoasting.md) | ✅ | ✅ (rule 92652) |
 | 02 | AS-REP Roasting | Credential Access | T1558.004 | [02](attaques/02-asrep-roasting.md) | ✅ | ⚠️ angle mort (4768 non audité) |
-| 03 | Énumération (SMB/LDAP, users) | Recon | T1087 | *à venir* | ⬜ | — |
+| 03 | Énumération (SMB/LDAP, users) | Recon | T1087 | [03](attaques/03-enumeration.md) | ✅ | 🔴 angle mort (recon furtive) |
 | 04 | LLMNR/NBT-NS Poisoning | Credential Access | T1557.001 | *à venir* | ⬜ | — |
 | 05 | Password Spraying | Credential Access | T1110.003 | [05](attaques/05-password-spraying.md) | ✅ | ✅ détecté (rafale de 4625) |
 | 06 | DCSync | Credential Access | T1003.006 | [06](attaques/06-dcsync.md) | ✅ | ⚠️ angle mort critique (4662 non audité) |
