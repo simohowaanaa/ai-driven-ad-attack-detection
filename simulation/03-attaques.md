@@ -22,7 +22,7 @@ Ordre logique d'une intrusion (kill chain), par catégorie :
 | 03 | Énumération (SMB/LDAP, users) | Recon | T1087 | *à venir* | ⬜ | — |
 | 04 | LLMNR/NBT-NS Poisoning | Credential Access | T1557.001 | *à venir* | ⬜ | — |
 | 05 | Password Spraying | Credential Access | T1110.003 | *à venir* | ⬜ | — |
-| 06 | DCSync | Credential Access | T1003.006 | *à venir* | ⬜ | — |
+| 06 | DCSync | Credential Access | T1003.006 | [06](attaques/06-dcsync.md) | ✅ | ⚠️ angle mort critique (4662 non audité) |
 | 07 | Abus ACL (GenericAll…) | Privilege Escalation | T1222 | *à venir* | ⬜ | — |
 | 08 | ADCS ESC1 (certificat) | Privilege Escalation | T1649 | *à venir* | ⬜ | — |
 | 09 | Pass-the-Hash | Lateral Movement | T1550.002 | *à venir* | ⬜ | — |
