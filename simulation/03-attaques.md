@@ -23,7 +23,7 @@ Ordre logique d'une intrusion (kill chain), par catégorie :
 | 04 | LLMNR/NBT-NS Poisoning | Credential Access | T1557.001 | [04](attaques/04-llmnr-poisoning.md) | ✅ | 🔴 angle mort (empoisonnement réseau) |
 | 05 | Password Spraying | Credential Access | T1110.003 | [05](attaques/05-password-spraying.md) | ✅ | ✅ détecté (rafale de 4625) |
 | 06 | DCSync | Credential Access | T1003.006 | [06](attaques/06-dcsync.md) | ✅ | ⚠️ angle mort critique (4662 non audité) |
-| 07 | Abus ACL (GenericAll…) | Privilege Escalation | T1222 | *à venir* | ⬜ | — |
+| 07 | Abus ACL (GenericWrite → DA) | Privilege Escalation | T1222.001 | [07](attaques/07-acl-abuse.md) | ✅ | 🟢 détecté (Event 4728 ajout Domain Admins) |
 | 08 | ADCS ESC1 (certificat) | Privilege Escalation | T1649 | [08](attaques/08-adcs-esc1.md) | ✅ | 🔴 angle mort critique (audit ADCS+Kerberos off) |
 | 09 | Pass-the-Hash | Lateral Movement | T1550.002 | [09](attaques/09-pass-the-hash.md) | ✅ | 🟡 partielle (4624 visibles, non alertés) |
 | 10 | MSSQL trusted links | Lateral Movement | T1210 | *à venir* | ⬜ | — |
