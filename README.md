@@ -51,6 +51,7 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 | 01 | [Kerberoasting](simulation/attaques/01-kerberoasting.md) | T1558.003 | ✅ Détecté (connexion attaquant, alerte niveau 6) |
 | 02 | [AS-REP Roasting](simulation/attaques/02-asrep-roasting.md) | T1558.004 | ⚠️ Angle mort identifié (audit à configurer) → justifie la Phase 5 |
 | 03 | [Énumération](simulation/attaques/03-enumeration.md) | T1087.002 | 🔴 Angle mort (recon LDAP furtive) |
+| 04 | [LLMNR/NBT-NS Poisoning](simulation/attaques/04-llmnr-poisoning.md) | T1557.001 | 🔴 Angle mort (empoisonnement réseau) → crack NTLMv1 = `sexywolfy` |
 | 05 | [Password Spraying](simulation/attaques/05-password-spraying.md) | T1110.003 | ✅ **Détecté** (rafale de 4625) — l'attaque témoin qui marche |
 | 06 | [DCSync](simulation/attaques/06-dcsync.md) | T1003.006 | ⚠️ Angle mort **critique** (compromission totale invisible) → justifie la Phase 5 |
 | 09 | [Pass-the-Hash](simulation/attaques/09-pass-the-hash.md) | T1550.002 | 🟡 Partielle (connexions vues mais non alertées) → baselining / IA (Phase 6) |
