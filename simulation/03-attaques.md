@@ -26,7 +26,7 @@ Ordre logique d'une intrusion (kill chain), par catégorie :
 | 07 | Abus ACL (GenericWrite → DA) | Privilege Escalation | T1222.001 | [07](attaques/07-acl-abuse.md) | ✅ | 🟢 détecté (Event 4728 ajout Domain Admins) |
 | 08 | ADCS ESC1 (certificat) | Privilege Escalation | T1649 | [08](attaques/08-adcs-esc1.md) | ✅ | 🔴 angle mort critique (audit ADCS+Kerberos off) |
 | 09 | Pass-the-Hash | Lateral Movement | T1550.002 | [09](attaques/09-pass-the-hash.md) | ✅ | 🟡 partielle (4624 visibles, non alertés) |
-| 10 | MSSQL trusted links | Lateral Movement | T1210 | *à venir* | ⬜ | — |
+| 10 | MSSQL (xp_cmdshell RCE) | Lateral Movement | T1210 | [10](attaques/10-mssql-rce.md) | ✅ | 🔴 angle mort (audit processus 4688 off) |
 | 11 | Golden Ticket | Persistence | T1558.001 | [11](attaques/11-golden-ticket.md) | ✅ | 🟡 anomalie (compte inexistant) → Phase 6 IA |
 | 12 | Abus de trust inter-domaine | Domain Trusts | T1482 | [12](attaques/12-trust-inter-domaine.md) | ✅ | 🟡 anomalie (compte forgé, incohérence nom/SID) → Phase 6 IA |
 

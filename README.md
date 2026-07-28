@@ -23,7 +23,7 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 | **1** | Documentation de **48 attaques AD** (MITRE ATT&CK, Event IDs, règles Sigma/QRadar/Elastic, remédiation) | ✅ **Terminé** |
 | **2** | Déploiement du lab **GOAD-Light** (AD vulnérable) sur une VM **Azure** | ✅ **Terminé** |
 | **3** | Installation du SIEM **Wazuh** + agents sur les 3 machines (collecte des logs) | ✅ **Terminé** |
-| **4** | **Simulation des attaques** + vérification de la détection Wazuh | 🔄 **En cours** |
+| **4** | **Simulation des attaques** (12 attaques) + vérification de la détection Wazuh | ✅ **Terminé** |
 | **5** | Écriture de **règles de détection sur-mesure** | ⬜ À venir |
 | **6** | **Agent IA** de détection (ML / anomalies) | ⬜ À venir |
 
@@ -57,6 +57,7 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 | 07 | [Abus d'ACL](simulation/attaques/07-acl-abuse.md) | T1222.001 | 🟢 **Détecté** (Event 4728 — ajout à Domain Admins) — 2ᵉ cas de détection |
 | 08 | [ADCS ESC1](simulation/attaques/08-adcs-esc1.md) | T1649 | 🔴 Angle mort **critique** (Domain User → Enterprise Admin, 100% silencieux) |
 | 09 | [Pass-the-Hash](simulation/attaques/09-pass-the-hash.md) | T1550.002 | 🟡 Partielle (connexions vues mais non alertées) → baselining / IA (Phase 6) |
+| 10 | [MSSQL (xp_cmdshell RCE)](simulation/attaques/10-mssql-rce.md) | T1210 | 🔴 Angle mort (RCE via SQL, audit de processus 4688 désactivé) |
 | 11 | [Golden Ticket](simulation/attaques/11-golden-ticket.md) | T1558.001 | 🟡 Anomalie détectable (compte inexistant, incohérence nom/SID) → IA (Phase 6) |
 | 12 | [Abus de trust inter-domaine](simulation/attaques/12-trust-inter-domaine.md) | T1482 | 🟡 Anomalie détectable (Child→Parent, compte forgé `hacker` RID 500) → IA (Phase 6) |
 
