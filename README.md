@@ -57,6 +57,7 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 | 08 | [ADCS ESC1](simulation/attaques/08-adcs-esc1.md) | T1649 | 🔴 Angle mort **critique** (Domain User → Enterprise Admin, 100% silencieux) |
 | 09 | [Pass-the-Hash](simulation/attaques/09-pass-the-hash.md) | T1550.002 | 🟡 Partielle (connexions vues mais non alertées) → baselining / IA (Phase 6) |
 | 11 | [Golden Ticket](simulation/attaques/11-golden-ticket.md) | T1558.001 | 🟡 Anomalie détectable (compte inexistant, incohérence nom/SID) → IA (Phase 6) |
+| 12 | [Abus de trust inter-domaine](simulation/attaques/12-trust-inter-domaine.md) | T1482 | 🟡 Anomalie détectable (Child→Parent, compte forgé `hacker` RID 500) → IA (Phase 6) |
 
 ---
 
