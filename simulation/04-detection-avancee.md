@@ -1,0 +1,62 @@
+# 🛡️ Phase 5 — Audits & règles de détection sur-mesure
+
+> **But :** combler les angles morts identifiés en Phase 4 en (1) activant les catégories d'audit Windows manquantes sur les DC, puis (2) écrivant des règles Wazuh custom qui transforment ces nouveaux événements en alertes.
+
+---
+
+## 🧠 Pourquoi cette phase est nécessaire
+
+Sur les **12 attaques** simulées en Phase 4, **6 sont restées invisibles** dans Wazuh — non pas parce que le SIEM est mauvais, mais parce que les **catégories d'audit Windows** correspondantes n'étaient pas activées sur les contrôleurs de domaine. Sans audit activé, l'action se produit (ex: DCSync réplique tous les hashs) mais **aucun événement n'est écrit** dans le journal Windows → Wazuh n'a rien à lire.
+
+```
+Action AD  →  Politique d'audit (activée ou non)  →  Windows Event Log  →  Agent Wazuh
+                        ↑
+                 C'EST CE QU'ON ACTIVE ICI
+```
+
+## 🎯 Catégories d'audit à activer
+
+| Catégorie d'audit | Event(s) généré(s) | Comble l'angle mort de |
+|---|---|---|
+| **Directory Service Access** | 4662 | [DCSync (06)](attaques/06-dcsync.md), [Énumération (03)](attaques/03-enumeration.md) |
+| **Kerberos Authentication Service** | 4768 | [AS-REP Roasting (02)](attaques/02-asrep-roasting.md) |
+| **Kerberos Service Ticket Operations** | 4769 | [Kerberoasting (01)](attaques/01-kerberoasting.md) |
+| **Certification Services** | 4886 / 4887 | [ADCS ESC1 (08)](attaques/08-adcs-esc1.md) |
+| **Process Creation** (+ ligne de commande) | 4688 | [MSSQL RCE (10)](attaques/10-mssql-rce.md) |
+
+**Méthode retenue pour le lab :** `auditpol` en local sur chaque DC (via une session PowerShell distante), plutôt qu'une GPO — plus rapide pour 2 DC, et pédagogiquement équivalent.
+
+```powershell
+auditpol /set /subcategory:"Directory Service Access" /success:enable /failure:enable
+auditpol /set /subcategory:"Kerberos Authentication Service" /success:enable /failure:enable
+auditpol /set /subcategory:"Kerberos Service Ticket Operations" /success:enable /failure:enable
+auditpol /set /subcategory:"Certification Services" /success:enable /failure:enable
+auditpol /set /subcategory:"Process Creation" /success:enable
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /v ProcessCreationIncludeCmdLine_Enabled /t REG_DWORD /d 1 /f
+```
+
+À appliquer sur les **2 DC** : `kingslanding` (192.168.56.10, sevenkingdoms) et `winterfell` (192.168.56.11, north).
+
+## 📋 Plan de la phase
+
+1. **Activer les audits** ci-dessus sur les 2 DC.
+2. **Rejouer** 2-3 attaques clés (DCSync, Kerberoasting, ADCS ESC1) pour vérifier que les événements remontent désormais dans Wazuh.
+3. **Écrire des règles Wazuh custom** (`local_rules.xml`) qui transforment ces événements en alertes exploitables :
+   - alerte critique sur toute requête DRS `GetNCChanges` hors des DC légitimes (DCSync)
+   - alerte sur les tickets Kerberos chiffrés en RC4 (Kerberoasting)
+   - alerte sur toute émission de certificat avec `Enrollee Supplies Subject` (ADCS)
+   - alerte sur les processus enfants de `sqlservr.exe` (MSSQL RCE)
+4. **Documenter** le avant/après détection pour chaque attaque concernée.
+
+## 🚧 État d'avancement
+
+| Étape | Statut |
+|:-----:|--------|
+| Activation des audits sur `kingslanding` | 🔄 En cours |
+| Activation des audits sur `winterfell` | ⬜ À faire |
+| Re-test des attaques avec audits actifs | ⬜ À faire |
+| Règles Wazuh custom | ⬜ À faire |
+
+---
+
+⬅️ Retour à la [simulation des attaques](03-attaques.md)
