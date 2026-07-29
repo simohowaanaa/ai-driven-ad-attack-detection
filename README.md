@@ -42,6 +42,9 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 - 🛡️ [Installation du SIEM Wazuh](simulation/02-siem-wazuh.md)
 - ⚔️ [Simulation des attaques & détection](simulation/03-attaques.md)
 - 🛡️ [Phase 5 — Audits & règles de détection](simulation/04-detection-avancee.md)
+- 📊 [Spectre de détection (synthèse des 12 attaques)](simulation/spectre-detection.md)
+- 🗺️ [Mapping MITRE ATT&CK](simulation/mitre-mapping.md)
+- 📖 [Glossaire AD & Kerberos](simulation/glossaire.md)
 
 ---
 
