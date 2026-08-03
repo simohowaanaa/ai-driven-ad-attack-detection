@@ -53,7 +53,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /
 | Étape | Statut |
 |:-----:|--------|
 | Activation des audits sur `kingslanding` | ✅ Confirmé |
-| Activation des audits sur `winterfell` | ⬜ À faire |
+| Activation des audits sur `winterfell` | ✅ Confirmé |
 | Re-test des attaques avec audits actifs | ⬜ À faire |
 | Règles Wazuh custom | ⬜ À faire |
 
@@ -94,6 +94,33 @@ Sur ce lab, les canaux d'exécution distante habituels (**WinRM/evil-winrm**, **
 5. **Récupérer le résultat** via `smbclient.py get` (pas besoin de repasser par RDP)
 
 > 💡 Cette instabilité de l'exécution distante sur `kingslanding` est elle-même une observation intéressante pour le projet : elle illustre qu'un DC durci peut activement gêner les outils d'attaque/administration à distance — un signal potentiellement détectable en soi (Phase 6).
+
+## ✅ Confirmation — `winterfell` (DC02, north)
+
+Contrairement à `kingslanding`, **`evil-winrm` fonctionne parfaitement sur `winterfell`** (déjà observé lors de l'attaque [Pass-the-Hash (09)](attaques/09-pass-the-hash.md)) — les 5 catégories ont donc été activées directement via WinRM, sans détour :
+
+```
+DS Access
+  Directory Service Access                Success and Failure
+
+Account Logon
+  Kerberos Service Ticket Operations      Success and Failure
+  Kerberos Authentication Service         Success and Failure
+
+Object Access
+  Certification Services                  Success and Failure
+
+Detailed Tracking
+  Process Creation                        Success
+```
+
+La SACL DCSync sur `DC=north,DC=sevenkingdoms,DC=local` a également été confirmée posée (`Allow Everyone → Replicating Directory Changes` / `...All` visibles dans la sortie `dsacls`).
+
+### 🔒 Découverte additionnelle : RDP explicitement interdit aux Domain Admins sur winterfell
+
+Contrairement à `kingslanding`, `winterfell` **refuse le RDP à tout compte membre de `Domain Admins`** (`"user account is not authorized for remote login"`, même après ajout au groupe et reconnexion). C'est une **vraie bonne pratique de durcissement** (protéger les comptes Tier-0 du vol d'identifiants via RDP) — ironiquement, elle a compliqué notre propre administration légitime du lab. Contournée en utilisant `evil-winrm` (qui, lui, fonctionne sur ce DC) plutôt que RDP.
+
+> 🎯 **Bilan Phase 5 (activation) : les 2 DC de la forêt sont désormais entièrement audités** sur les 5 catégories ciblées, comblant la base technique des angles morts identifiés en Phase 4 (DCSync, Kerberoasting, AS-REP, ADCS ESC1, MSSQL RCE). Prochaine étape : re-tester ces attaques pour confirmer l'apparition des événements, puis écrire les règles Wazuh custom.
 
 ---
 
