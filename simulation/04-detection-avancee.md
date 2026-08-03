@@ -54,8 +54,9 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /
 |:-----:|--------|
 | Activation des audits sur `kingslanding` | ✅ Confirmé |
 | Activation des audits sur `winterfell` | ✅ Confirmé |
-| Re-test des attaques avec audits actifs | ⬜ À faire |
-| Règles Wazuh custom | ⬜ À faire |
+| Re-test DCSync avec audit + SACL actifs | ✅ Confirmé |
+| Règle Wazuh custom — DCSync | ✅ **Détecté** |
+| Règles Wazuh custom — autres angles morts | ⬜ À faire |
 
 ---
 
@@ -120,7 +121,68 @@ La SACL DCSync sur `DC=north,DC=sevenkingdoms,DC=local` a également été confi
 
 Contrairement à `kingslanding`, `winterfell` **refuse le RDP à tout compte membre de `Domain Admins`** (`"user account is not authorized for remote login"`, même après ajout au groupe et reconnexion). C'est une **vraie bonne pratique de durcissement** (protéger les comptes Tier-0 du vol d'identifiants via RDP) — ironiquement, elle a compliqué notre propre administration légitime du lab. Contournée en utilisant `evil-winrm` (qui, lui, fonctionne sur ce DC) plutôt que RDP.
 
-> 🎯 **Bilan Phase 5 (activation) : les 2 DC de la forêt sont désormais entièrement audités** sur les 5 catégories ciblées, comblant la base technique des angles morts identifiés en Phase 4 (DCSync, Kerberoasting, AS-REP, ADCS ESC1, MSSQL RCE). Prochaine étape : re-tester ces attaques pour confirmer l'apparition des événements, puis écrire les règles Wazuh custom.
+> 🎯 **Bilan Phase 5 (activation) : les 2 DC de la forêt sont désormais entièrement audités** sur les 5 catégories ciblées, comblant la base technique des angles morts identifiés en Phase 4 (DCSync, Kerberoasting, AS-REP, ADCS ESC1, MSSQL RCE).
+
+## 🎯 Règle custom #1 — DCSync détecté
+
+### Le piège : DACL ≠ SACL
+
+Première tentative avec `dsacls /G` : **échec silencieux**. `dsacls` ne modifie que la **DACL** (permissions), jamais la **SACL** (audit) — la réplication était déjà autorisée par les trusts existants, donc la commande "réussissait" sans jamais poser la moindre règle d'audit. Aucune Event 4662 n'apparaissait, ni dans Windows ni dans Wazuh.
+
+**Solution correcte** — PowerShell avec le module `ActiveDirectory` et `Get-Acl -Audit` / `Set-Acl` :
+```powershell
+Import-Module ActiveDirectory -ErrorAction SilentlyContinue
+$path = "AD:\DC=sevenkingdoms,DC=local"
+$acl = Get-Acl -Path $path -Audit
+$identity = New-Object System.Security.Principal.NTAccount("Everyone")
+$replRight1 = [GUID]"1131f6aa-9c07-11d1-f79f-00c04fc2dcd2"   # Replicating Directory Changes
+$replRight2 = [GUID]"1131f6ad-9c07-11d1-f79f-00c04fc2dcd2"   # Replicating Directory Changes All
+$rule1 = New-Object System.DirectoryServices.ActiveDirectoryAuditRule($identity,"ExtendedRight","Success",$replRight1)
+$rule2 = New-Object System.DirectoryServices.ActiveDirectoryAuditRule($identity,"ExtendedRight","Success",$replRight2)
+$acl.AddAuditRule($rule1)
+$acl.AddAuditRule($rule2)
+Set-Acl -Path $path -AclObject $acl
+```
+Confirmé par `Get-WinEvent -FilterHashtable @{LogName='Security';Id=4662} -MaxEvents 5` : **Windows génère bien l'Event 4662** après un DCSync.
+
+### Le 2ᵉ piège : event reçu par Wazuh ≠ event alerté
+
+Même avec le 4662 bien généré et remonté par l'agent (confirmé absent de la liste d'exclusion `<query>` de `ossec.conf`), **aucune alerte n'apparaissait** dans `wazuh-alerts-*`. Raison : cet index ne contient que les logs qui **matchent une règle** — sans règle dédiée, l'event est reçu par le manager mais jamais indexé comme alerte.
+
+### La règle qui fonctionne
+
+En s'alignant sur la structure des règles Windows par défaut (ex: la règle 60106 qui détecte les logons 4624/4769, chaînée sur `if_sid=60103` = "Windows audit success event") :
+
+```xml
+<group name="dcsync,attack,">
+  <rule id="100010" level="12">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4662$</field>
+    <description>Possible DCSync attack detected: AD replication rights used</description>
+    <mitre>
+      <id>T1003.006</id>
+    </mitre>
+    <group>dcsync,attack,</group>
+  </rule>
+</group>
+```
+*(fichier : `/var/ossec/etc/rules/local_rules.xml` sur la VM Wazuh)*
+
+### Résultat — DCSync rejoué, alerte confirmée
+
+```
+rule.id: 100010
+eventID: 4662
+subjectUserName: tywin.lannister        ← l'attaquant identifié automatiquement
+properties: {1131f6aa-...} {1131f6ad-...}  ← droits de réplication détectés
+objectServer: DS · operationType: Object Access
+```
+
+**Le DCSync (attaque 06), angle mort critique de la Phase 4, est maintenant détecté.** 🟢
+
+![3 hits confirmés : règle 100010 détecte le DCSync de tywin.lannister](screenshots/phase5/phase5-dcsync-rule-detected.png)
+
+> 💡 **Piste d'amélioration :** la règle actuelle matche tout event 4662, y compris la réplication légitime entre DC. Pour affiner (moins de bruit, spécifique à un abus), ajouter un filtre sur `win.eventdata.properties` contenant les GUID de réplication **ET** `win.eventdata.subjectUserName` ne correspondant PAS à un compte machine DC (`$` final) — l'attaquant utilise un compte utilisateur, pas un compte ordinateur.
 
 ---
 
