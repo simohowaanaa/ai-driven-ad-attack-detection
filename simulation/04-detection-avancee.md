@@ -52,10 +52,48 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /
 
 | Étape | Statut |
 |:-----:|--------|
-| Activation des audits sur `kingslanding` | 🔄 En cours |
+| Activation des audits sur `kingslanding` | ✅ Confirmé |
 | Activation des audits sur `winterfell` | ⬜ À faire |
 | Re-test des attaques avec audits actifs | ⬜ À faire |
 | Règles Wazuh custom | ⬜ À faire |
+
+---
+
+## ✅ Confirmation — `kingslanding` (DC01, sevenkingdoms)
+
+Les 5 catégories cibles sont actives, vérifiées via `auditpol /get /category:*` exécuté directement sur le DC :
+
+```
+DS Access
+  Directory Service Access                Success and Failure
+
+Account Logon
+  Kerberos Service Ticket Operations      Success and Failure
+  Kerberos Authentication Service         Success and Failure
+
+Object Access
+  Certification Services                  Success and Failure
+
+Detailed Tracking
+  Process Creation                        Success
+```
+
+La **SACL DCSync** (`Replicating Directory Changes` / `...All` sur `DC=sevenkingdoms,DC=local`) a également été posée avec succès :
+
+![dsacls appliqué avec succès sur kingslanding](screenshots/phase5/phase5-audit-kingslanding-dsacls.png)
+
+### 🛠️ Méthode qui a fonctionné (note technique)
+
+Sur ce lab, les canaux d'exécution distante habituels (**WinRM/evil-winrm**, **atexec**, **psexec**) échouent silencieusement sur `kingslanding` — les commandes rapportent un succès protocolaire mais **n'ont aucun effet réel** sur la machine (confirmé par un test de preuve : `mkdir` via 3 mécanismes différents, aucun n'a créé le dossier). Cause probable : une protection active côté DC (Defender ou équivalent) neutralisant l'exécution distante non-interactive.
+
+**Solution qui a marché :**
+1. Rendre un compte de domaine **Domain Admin** via `bloodyAD` (LDAP — le seul canal resté fiable tout au long du projet)
+2. Se connecter en **RDP natif** (port 3389, tunnelé en SSH) avec ce compte — session interactive, insensible aux protections qui bloquent l'exécution non-interactive
+3. **Uploader le script** d'audit via `smbclient.py` (écriture SMB directe, fiable) plutôt que de taper les commandes à la main
+4. **Exécuter une seule ligne courte** dans la session RDP : `powershell -ep bypass -file C:\Windows\Temp\audit.ps1`
+5. **Récupérer le résultat** via `smbclient.py get` (pas besoin de repasser par RDP)
+
+> 💡 Cette instabilité de l'exécution distante sur `kingslanding` est elle-même une observation intéressante pour le projet : elle illustre qu'un DC durci peut activement gêner les outils d'attaque/administration à distance — un signal potentiellement détectable en soi (Phase 6).
 
 ---
 
