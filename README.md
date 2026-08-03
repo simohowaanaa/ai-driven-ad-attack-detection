@@ -1,4 +1,4 @@
-# 🛡️ Détection d'attaques Active Directory par IA — Projet SOC
+# 🛡️Détection d'attaques Active Directory par IA — Projet SOC
 
 > **Projet de Fin d'Année (PFA)** — Stage au **Security Operations Center (SOC)** de **Dataprotect** (Business Unit Security Intelligence).
 
@@ -79,3 +79,4 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 
 ## ⚠️ Cadre éthique
 Toutes les attaques sont réalisées **exclusivement** dans un lab **isolé et volontairement vulnérable** (GOAD), à des fins d'apprentissage et de recherche défensive. **Aucune** de ces techniques ne doit être utilisée sur un système réel sans autorisation explicite.
+simohowaana
