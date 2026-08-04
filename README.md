@@ -45,6 +45,7 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 - 📊 [Spectre de détection (synthèse des 12 attaques)](simulation/spectre-detection.md)
 - 🗺️ [Mapping MITRE ATT&CK](simulation/mitre-mapping.md)
 - 📖 [Glossaire AD & Kerberos](simulation/glossaire.md)
+- 📄 [Rapport d'avancement (4 août 2026)](rapports/rapport-avancement-2026-08-04.pdf)
 
 ---
 
