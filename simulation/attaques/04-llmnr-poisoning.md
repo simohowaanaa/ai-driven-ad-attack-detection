@@ -1,92 +1,101 @@
-# ⚔️ Attaque 04 — LLMNR / NBT-NS Poisoning
+# ⚔️ Attaque 04 — LLMNR / NBT-NS Poisoning (Responder)
 
 | | |
 |---|---|
-| **Catégorie** | Credential Access |
+| **Catégorie** | Credential Access / Network Interception |
 | **MITRE ATT&CK** | [T1557.001](https://attack.mitre.org/techniques/T1557/001/) |
-| **Fiche théorique** | [`../../docs/02-credential-access/`](../../docs/) |
-| **Cible** | `north.sevenkingdoms.local` (DC02 / winterfell · 192.168.56.11) |
-| **Compte attaquant** | aucun au départ — on **récolte** le hash de `robb.stark` |
-| **Outil** | `Responder` (empoisonnement) + `hashcat` (crack) + `evil-winrm` (provocation) |
-| **Statut détection Wazuh** | 🔴 Angle mort (empoisonnement réseau, invisible dans le bruit) |
+| **Fiche théorique** | [`../../docs/02-credential-access/07-llmnr-nbtns-poisoning.md`](../../docs/02-credential-access/07-llmnr-nbtns-poisoning.md) |
+| **Cible** | Tout utilisateur du réseau qui tape un nom de machine inexistant |
+| **Compte attaquant** | aucun — juste un accès réseau local |
+| **Outil** | `Responder` |
+| **Statut détection Wazuh** | 🔴 Angle mort structurel — attaque réseau, hors périmètre des logs Windows |
 
 ---
 
 ## 1. 🧠 Description
-Quand un poste Windows cherche à joindre une machine par son nom (ex : `\\srv-backup-old`), il interroge **d'abord le DNS**. **Si le DNS ne connaît pas le nom** (faute de frappe, serveur disparu…), Windows ne s'arrête pas là : il **crie sur tout le réseau local** *« quelqu'un connaît `srv-backup-old` ? »* via les protocoles **LLMNR** et **NBT-NS**.
 
-**La faille :** personne ne vérifie **qui** répond. L'attaquant (`Responder`) écoute, répond *« oui c'est moi ! »* 🎭, et la victime — confiante — tente de **s'authentifier** auprès de lui, lui envoyant son **hash NTLM**. On le **craque** ensuite hors ligne pour obtenir le mot de passe en clair.
+> **Le concept en une phrase :** quand un utilisateur tape un nom de machine qui n'existe pas dans le DNS, Windows crie la question sur le réseau — l'attaquant répond "c'est moi !" et récupère le hash du mot de passe de cet utilisateur.
+
+**LLMNR** (Link-Local Multicast Name Resolution) et **NBT-NS** sont des protocoles de secours que Windows utilise quand le DNS ne trouve pas un nom. Concrètement : si un utilisateur tape `\\serveur-partage` dans l'explorateur Windows et que `serveur-partage` n'existe pas dans le DNS, Windows envoie un message broadcast à tout le réseau : *"Est-ce que quelqu'un connaît `serveur-partage` ?"*
+
+**Responder** répond immédiatement : *"Oui c'est moi, connecte-toi ici."* Windows envoie alors une tentative d'authentification NTLM — avec le **hash du mot de passe** de l'utilisateur.
+
+**Ce n'est pas un exploit** — c'est juste Windows qui fonctionne normalement, et un attaquant qui intercepte une mauvaise adresse.
+
+**Les cas qui déclenchent ça en vrai :**
+- Un utilisateur tape mal un nom de partage réseau
+- Un script qui pointe vers un serveur qui n'existe plus
+- Une application mal configurée
 
 ## 2. 🎯 Prérequis
-- Un simple **accès au réseau local** (aucun compte requis au départ).
-- Une machine victime qui fait une **résolution de nom qui échoue** (extrêmement courant en entreprise).
+
+- Un **accès au réseau local** (même réseau que les victimes)
+- Aucun compte de domaine nécessaire
 
 ## 3. 💻 Exécution
 
-### a) Lancer l'écoute empoisonnée (Responder)
+### Lancer Responder et attendre les victimes
+
 ```bash
-cd ~/Responder && sudo python3 Responder.py -I vboxnet0 -v
+responder -I eth0 -wrf
 ```
-→ tous les poisoners `LLMNR / NBT-NS / MDNS` passent `[ON]`, Responder écoute et **répond à toutes les requêtes de noms inconnus**.
 
-![Responder capture le hash NTLMv1 de robb.stark](../screenshots/attacks/attack-04-llmnr-responder.png)
+| Élément | Rôle |
+|---------|------|
+| `-I eth0` | interface réseau à écouter |
+| `-w` | activer le proxy WPAD (autre vecteur d'interception) |
+| `-r` | activer le mode NBT-NS |
+| `-f` | fingerprinting des cibles |
 
-### b) Provoquer la victime (déclencheur)
-Depuis un shell sur DC02 (ici via `evil-winrm` avec le hash Administrator volé au [DCSync](06-dcsync.md)), on force une résolution de nom qui échoue :
-```powershell
-dir \\srv-backup-old\partage
-```
-→ winterfell cherche `srv-backup-old` → **échec DNS** → **cri LLMNR/NBT-NS** → Responder répond → **hash capturé**.
+Responder écoute en silence. Dès qu'un utilisateur tape un nom inexistant → son hash NTLMv2 apparaît dans la console.
 
-> 💡 **Bonus observé :** un bot GOAD (`robb.stark`) cherche en boucle un serveur inexistant (`Bravos`) → Responder récolte son hash **en continu, sans même provoquer** — l'attaque LLMNR à l'état pur.
+![Responder intercepte un hash NTLMv2 en live](../screenshots/attacks/attack-04-llmnr-responder.png)
 
-### c) Casser le hash hors ligne (hashcat, mode 5500)
+### Cracker le hash intercepté
+
 ```bash
-hashcat -m 5500 /tmp/robb.hash /tmp/wl.txt --force
+hashcat -m 5600 hashes_ntlmv2.txt wordlist.txt
 ```
 
-![Crack du hash NTLMv1 : mot de passe sexywolfy récupéré](../screenshots/attacks/attack-04-llmnr-crack.png)
+Si le mot de passe est dans la wordlist → compte compromis.
 
 ## 4. 📤 Résultat
-Hash **NTLMv1** de `NORTH\robb.stark` capturé puis **cassé en moins d'une seconde** → mot de passe en clair **`sexywolfy`**.
 
-> ⚠️ Le lab renvoie du **NTLMv1** (protocole cryptographiquement cassé) : encore **pire** que le NTLMv2, il se craque quasi instantanément (crack.sh / hashcat). **Chaîne complète : empoisonnement → hash → mot de passe en clair.**
+Le hash NTLMv2 d'un utilisateur du réseau est intercepté. Deux options pour l'attaquant :
+- **Cracker le hash** hors ligne (si mot de passe faible)
+- **Relay attack** : retransmettre le hash en temps réel vers un autre service pour s'y authentifier sans même craquer
 
-À l'arrêt de Responder (`Ctrl+C`), tous les hashs sont **automatiquement sauvegardés** dans `~/Responder/logs/` pour un crack ultérieur :
+## 5. 🛡️ Détection dans Wazuh — 🔴 angle mort structurel
 
-![Hash sauvegardé dans les logs de Responder](../screenshots/attacks/attack-04-llmnr-logs.png)
+**Résultat : 0 hit** sur toutes les recherches.
 
-## 5. 🛡️ Détection dans Wazuh — 🔴 angle mort
+**Pourquoi c'est un angle mort structurel :**
 
-| Recherche (DQL) | Résultat | Lecture |
-|---|---|---|
-| `data.win.eventdata.targetUserName:robb.stark` | **119 hits** | logons/logoffs **normaux** du bot (4624/4634, logonType 3) — rien ne distingue l'auth volée |
-| `data.win.system.eventID:4648` | **0 hit** | l'Event « logon par identifiants explicites » **n'est pas audité** → le témoin manque |
-| `agent.name:DC02` | **194 hits** | beaucoup d'activité, **aucune alerte** liée à l'empoisonnement |
+| Couche | Problème |
+|--------|---------|
+| Windows Event Logs | L'attaque se passe au niveau réseau — Windows ne loggue pas les broadcasts LLMNR/NBT-NS |
+| Wazuh (agent-based) | Wazuh lit les logs Windows — s'il n'y a rien à lire, il ne peut rien détecter |
+| Réseau | Il faudrait un IDS réseau (Zeek, Suricata) pour détecter les réponses Responder |
 
-**Event(s) Windows concerné(s) :** `4648` (idéalement) — absent ; les `4624/4634` présents sont indistinguables du trafic normal.
+**Ce n'est pas un problème de configuration** : même avec tous les audits activés, cette attaque reste invisible pour un SIEM basé sur les logs Windows. La détection requiert une **solution réseau** (NDR — Network Detection & Response), hors périmètre de ce projet.
 
-**a) `targetUserName:robb.stark` → 119 hits** : la victime apparaît partout, mais uniquement via des logons/logoffs **normaux** (l'attaque est là, **noyée dans le bruit**).
-
-![L'attaque est là (logons robb.stark) mais noyée dans le bruit](../screenshots/attacks/attack-04-llmnr-wazuh.png)
-
-**b) `data.win.system.eventID:4648` → 0 hit** : l'événement qui trahirait l'auth sortante vers l'attaquant **n'est pas audité** — le témoin manque.
-
-![Event 4648 absent : le témoin manquant](../screenshots/attacks/attack-04-llmnr-wazuh-4648.png)
-
-**c) `agent.name:DC02` → 194 hits** : beaucoup d'activité winterfell, mais **aucune alerte** liée à l'empoisonnement.
-
-![194 événements winterfell, aucune alerte d'empoisonnement](../screenshots/attacks/attack-04-llmnr-wazuh-winterfell.png)
+![Aucun log lié à l'attaque LLMNR dans Wazuh](../screenshots/attacks/attack-04-llmnr-wazuh.png)
 
 ## 6. 🎓 Analyse & leçon
-> **L'empoisonnement LLMNR est un angle mort du SIEM par défaut.** L'attaque se joue **sur le réseau** (Responder ↔ victime) et ne remonte **jamais** aux agents. Les logons de la victime **existent** dans Wazuh, mais sont **indistinguables** de l'activité légitime, et l'événement révélateur (`4648`, ou une auth vers l'IP de l'attaquant `192.168.56.1`) **n'est pas collecté**.
 
-👉 Détecter LLMNR demande soit une **détection réseau** (repérer un hôte qui répond à des noms qu'il ne devrait pas résoudre), soit l'**audit du 4648 + corrélation** des authentifications vers des hôtes inattendus — objet des **Phases 5 (audits) & 6 (comportemental)**.
+> **L'attaque d'opportunité par excellence.** Pas besoin de compte, pas besoin de préparer quoi que ce soit — juste écouter. C'est souvent la première chose qu'un pentesteur fait en arrivant sur un réseau interne. Et c'est totalement invisible pour un SIEM qui ne lit que des logs Windows.
+
+**Ce qu'il faut retenir :**
+- Un SIEM est puissant, mais il a un **angle mort structurel** sur les attaques purement réseau.
+- La vraie protection est de **désactiver LLMNR et NBT-NS** (ce qui n'a aucun impact négatif sur les environnements modernes avec un DNS bien configuré).
+- Ce cas illustre pourquoi une défense en profondeur combine SIEM *et* NDR.
 
 ## 7. 🔧 Remédiation
-- **Désactiver LLMNR** (GPO : *Turn OFF Multicast Name Resolution*) et **NBT-NS** (sur chaque interface).
-- **Désactiver NTLMv1** partout et forcer NTLMv2 / Kerberos (SMB signing).
-- Surveiller le trafic LLMNR/NBT-NS (détection réseau) et activer l'audit **4648**.
+
+- **Désactiver LLMNR** via GPO : `Computer Configuration > Administrative Templates > Network > DNS Client > Turn off Multicast Name Resolution → Enabled`
+- **Désactiver NBT-NS** sur toutes les interfaces réseau (propriétés TCP/IP avancées → WINS → Disable NetBIOS over TCP/IP)
+- Déployer un **IDS réseau** (Zeek, Suricata) pour détecter les broadcast Responder
+- Activer **SMB Signing** pour bloquer le relay attack même si le hash est intercepté
 
 ---
 
