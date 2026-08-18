@@ -410,18 +410,82 @@ Poser des SACLs sur l'ensemble des objets AD serait techniquement faisable mais 
 
 ---
 
-## 📊 Bilan final Phase 5 — 5 règles custom + 1 angle mort structurel
+## 🎯 Règle custom #6 — Pass-the-Hash détecté
+
+**Signature clé :** Event 4624 (Logon) avec LogonType=3 (réseau) et AuthenticationPackageName=NTLM — un logon réseau NTLM depuis un compte non-machine est la signature caractéristique d'un Pass-the-Hash.
+
+```xml
+<group name="pth,attack,">
+  <rule id="100017" level="10">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4624$</field>
+    <field name="win.eventdata.logonType">^3$</field>
+    <field name="win.eventdata.authenticationPackageName">^NTLM$</field>
+    <description>Pass-the-Hash: Network logon (type 3) with NTLM — possible credential reuse</description>
+    <mitre><id>T1550.002</id></mitre>
+    <group>pth,attack,</group>
+  </rule>
+</group>
+```
+
+**Résultat :** 5 hits live — connexion smbclient.py avec hash NTLM de jon.snow (nord.sevenkingdoms.local) détectée. 🟢
+
+---
+
+## 🎯 Règle custom #7 — Trust Abuse inter-domaine détecté
+
+**Signature clé :** Logon NTLM réseau (4624 type 3) depuis un compte du domaine NORTH sur le DC parent (kingslanding/SEVENKINGDOMS) — signal d'un mouvement latéral inter-domaine ou d'une forgerie de ticket inter-realm.
+
+La règle est chaînée sur 100017 (Pass-the-Hash) et affine sur `targetDomainName=NORTH` pour identifier spécifiquement les authentifications cross-domain sur le DC parent.
+
+```xml
+<group name="trust_abuse,attack,">
+  <rule id="100019" level="12">
+    <if_sid>100017</if_sid>
+    <field name="win.eventdata.targetDomainName" type="pcre2">(?i)north</field>
+    <description>Trust abuse: Cross-domain NTLM logon from NORTH domain — possible inter-realm attack on SEVENKINGDOMS</description>
+    <mitre><id>T1482</id></mitre>
+    <group>trust_abuse,attack,</group>
+  </rule>
+</group>
+```
+
+**Résultat :** 18 hits live — connexions NORTH→SEVENKINGDOMS détectées sur kingslanding. 🟢
+
+---
+
+## 🚫 Angles morts non comblables par signature — LLMNR, Énumération LDAP & Golden Ticket
+
+### LLMNR/NBT-NS Poisoning (attaque 04)
+
+Attaque **réseau pure** — aucun event Windows généré. Nécessite un NDR (Zeek, Suricata). Meilleure défense : désactiver LLMNR via GPO.
+
+### Énumération LDAP (attaque 03)
+
+Event 4662 requiert des SACLs sur chaque objet AD ciblé. Sans SACLs, 0 event généré (confirmé live via `GetADUsers.py`). Avec SACLs généralisées : bruit inexploitable. → **Phase 6 (IA comportementale).**
+
+### Golden Ticket (attaque 11)
+
+Ticket cryptographiquement valide — indiscernable d'un ticket légitime par signature. La règle 100018 testée (`ticketOptions=0x40810000`) générait 75 faux positifs sur du trafic Kerberos normal. → **Phase 6 (corrélation temporelle : TGS sans AS-REQ précédent).**
+
+---
+
+## 📊 Bilan final Phase 5 — 7 règles custom
 
 | # | Règle | Event | MITRE | Statut |
 |---|-------|-------|-------|--------|
 | 100010 | DCSync | 4662 | T1003.006 | ✅ **Validé en live** (3 hits, tywin.lannister) |
 | 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 | ✅ **Validé en live** (3 hits, RC4) |
 | 100012 | ADCS ESC1 | 4887 | T1649 | ✅ **Validé en live** (2 hits, cert admin) |
-| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ✅ **Validé en live** (7 hits, xp_cmdshell whoami) |
+| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ✅ **Validé en live** (7 hits, xp_cmdshell) |
 | 100014 | AS-REP Roasting | 4768 + preAuthType=0 | T1558.004 | ✅ **Validé en live** (1 hit) |
-| — | LLMNR Poisoning | — | T1557.001 | 🚫 **Non comblable** (attaque réseau, hors SIEM) |
+| 100017 | Pass-the-Hash | 4624 + NTLM + type 3 | T1550.002 | ✅ **Validé en live** (5 hits) |
+| 100019 | Trust Abuse | 4624 NORTH→SEVENKINGDOMS | T1482 | ✅ **Validé en live** (18 hits) |
+| — | LLMNR Poisoning | — | T1557.001 | 🚫 Attaque réseau, hors SIEM |
+| — | Énumération LDAP | 4662 | T1087.002 | 🚫 SACLs objet requis → Phase 6 |
+| — | Golden Ticket | 4769 | T1558.001 | 🚫 Indétectable par signature → Phase 6 |
 
-**5 angles morts sur 6 sont détectés via des règles custom validées en live. LLMNR (attaque réseau pure) et Énumération LDAP (nécessite SACLs objet → bruit inexploitable) sont structurellement hors périmètre d'une détection par signature — candidats naturels pour la Phase 6 (IA comportementale).**
+**7 règles custom validées en live. Phase 5 complète.**
 
 ---
 
