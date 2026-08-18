@@ -103,7 +103,7 @@ robb.stark@NORTH.SEVENKINGDOMS.LOCAL
 
 ## 🛠️ Script
 
-Fichier : [`simulation/phase6_anomaly_detection.py`](phase6_anomaly_detection.py)
+Fichier : [`detection/phase6_anomaly_detection.py`](../detection/phase6_anomaly_detection.py)
 
 ```bash
 # Export des alertes depuis OpenSearch
