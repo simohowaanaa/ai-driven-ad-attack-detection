@@ -24,8 +24,8 @@ Concevoir une chaîne complète de **détection d'attaques Active Directory** : 
 | **2** | Déploiement du lab **GOAD-Light** (AD vulnérable) sur une VM **Azure** | ✅ **Terminé** |
 | **3** | Installation du SIEM **Wazuh** + agents sur les 3 machines (collecte des logs) | ✅ **Terminé** |
 | **4** | **Simulation des attaques** (12 attaques) + vérification de la détection Wazuh | ✅ **Terminé** |
-| **5** | Écriture de **règles de détection sur-mesure** | 🔄 **En cours** |
-| **6** | **Agent IA** de détection (ML / anomalies) | ⬜ À venir |
+| **5** | Écriture de **règles de détection sur-mesure** | ✅ **Terminé** |
+| **6** | **Agent IA** de détection (ML / anomalies) | ✅ **Terminé** |
 
 ---
 
