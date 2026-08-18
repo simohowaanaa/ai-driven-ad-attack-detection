@@ -103,7 +103,7 @@ robb.stark@NORTH.SEVENKINGDOMS.LOCAL
 
 ## 🛠️ Script
 
-Fichier : [`detection/phase6_anomaly_detection.py`](../detection/phase6_anomaly_detection.py)
+Fichier : [`detection/anomaly_detection.py`](./anomaly_detection.py)
 
 ```bash
 # Export des alertes depuis OpenSearch
@@ -113,7 +113,7 @@ curl -k -u 'admin:<password>' "https://127.0.0.1:9200/wazuh-alerts-*/_search?siz
   -o /tmp/wazuh_alerts.json
 
 # Exécution
-python3 phase6_anomaly_detection.py /tmp/wazuh_alerts.json
+python3 anomaly_detection.py /tmp/wazuh_alerts.json
 ```
 
 ---
@@ -132,4 +132,4 @@ python3 phase6_anomaly_detection.py /tmp/wazuh_alerts.json
 
 ---
 
-⬅️ Retour aux [règles de détection (Phase 5)](04-detection-avancee.md)
+⬅️ Retour aux [règles de détection (Phase 5)](./01-regles-wazuh.md)

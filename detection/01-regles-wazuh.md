@@ -18,11 +18,11 @@ Action AD  →  Politique d'audit (activée ou non)  →  Windows Event Log  →
 
 | Catégorie d'audit | Event(s) généré(s) | Comble l'angle mort de |
 |---|---|---|
-| **Directory Service Access** | 4662 | [DCSync (06)](attaques/06-dcsync.md), [Énumération (03)](attaques/03-enumeration.md) |
-| **Kerberos Authentication Service** | 4768 | [AS-REP Roasting (02)](attaques/02-asrep-roasting.md) |
-| **Kerberos Service Ticket Operations** | 4769 | [Kerberoasting (01)](attaques/01-kerberoasting.md) |
-| **Certification Services** | 4886 / 4887 | [ADCS ESC1 (08)](attaques/08-adcs-esc1.md) |
-| **Process Creation** (+ ligne de commande) | 4688 | [MSSQL RCE (10)](attaques/10-mssql-rce.md) |
+| **Directory Service Access** | 4662 | [DCSync (06)](../simulation/attaques/06-dcsync.md), [Énumération (03)](../simulation/attaques/03-enumeration.md) |
+| **Kerberos Authentication Service** | 4768 | [AS-REP Roasting (02)](../simulation/attaques/02-asrep-roasting.md) |
+| **Kerberos Service Ticket Operations** | 4769 | [Kerberoasting (01)](../simulation/attaques/01-kerberoasting.md) |
+| **Certification Services** | 4886 / 4887 | [ADCS ESC1 (08)](../simulation/attaques/08-adcs-esc1.md) |
+| **Process Creation** (+ ligne de commande) | 4688 | [MSSQL RCE (10)](../simulation/attaques/10-mssql-rce.md) |
 
 **Méthode retenue pour le lab :** `auditpol` en local sur chaque DC (via une session PowerShell distante), plutôt qu'une GPO — plus rapide pour 2 DC, et pédagogiquement équivalent.
 
@@ -85,7 +85,7 @@ Detailed Tracking
 
 La **SACL DCSync** (`Replicating Directory Changes` / `...All` sur `DC=sevenkingdoms,DC=local`) a également été posée avec succès :
 
-![dsacls appliqué avec succès sur kingslanding](screenshots/phase5/phase5-audit-kingslanding-dsacls.png)
+![dsacls appliqué avec succès sur kingslanding](../simulation/screenshots/phase5/phase5-audit-kingslanding-dsacls.png)
 
 ### 🛠️ Méthode qui a fonctionné (note technique)
 
@@ -102,7 +102,7 @@ Sur ce lab, les canaux d'exécution distante habituels (**WinRM/evil-winrm**, **
 
 ## ✅ Confirmation — `winterfell` (DC02, north)
 
-Contrairement à `kingslanding`, **`evil-winrm` fonctionne parfaitement sur `winterfell`** (déjà observé lors de l'attaque [Pass-the-Hash (09)](attaques/09-pass-the-hash.md)) — les 5 catégories ont donc été activées directement via WinRM, sans détour :
+Contrairement à `kingslanding`, **`evil-winrm` fonctionne parfaitement sur `winterfell`** (déjà observé lors de l'attaque [Pass-the-Hash (09)](../simulation/attaques/09-pass-the-hash.md)) — les 5 catégories ont donc été activées directement via WinRM, sans détour :
 
 ```
 DS Access
@@ -184,7 +184,7 @@ objectServer: DS · operationType: Object Access
 
 **Le DCSync (attaque 06), angle mort critique de la Phase 4, est maintenant détecté.** 🟢
 
-![3 hits confirmés : règle 100010 détecte le DCSync de tywin.lannister](screenshots/phase5/phase5-dcsync-rule-detected.png)
+![3 hits confirmés : règle 100010 détecte le DCSync de tywin.lannister](../simulation/screenshots/phase5/phase5-dcsync-rule-detected.png)
 
 > 💡 **Piste d'amélioration :** la règle actuelle matche tout event 4662, y compris la réplication légitime entre DC. Pour affiner (moins de bruit, spécifique à un abus), ajouter un filtre sur `win.eventdata.properties` contenant les GUID de réplication **ET** `win.eventdata.subjectUserName` ne correspondant PAS à un compte machine DC (`$` final) — l'attaquant utilise un compte utilisateur, pas un compte ordinateur.
 
@@ -489,4 +489,4 @@ Ticket cryptographiquement valide — indiscernable d'un ticket légitime par si
 
 ---
 
-⬅️ Retour à la [simulation des attaques](03-attaques.md)
+⬅️ Retour à la [simulation des attaques](../simulation/03-attaques.md)

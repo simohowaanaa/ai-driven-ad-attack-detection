@@ -35,10 +35,11 @@ Chaîne complète de détection d'attaques Active Directory : documentation thé
 ```
 .
 ├── docs/               ← Phase 1 : 48 fiches d'attaques AD (théorie + détection)
-├── simulation/         ← Phases 2-6 : lab, attaques simulées, règles, agent IA
-│   ├── attaques/       ← 12 fiches d'attaques rejouées (commandes + captures)
-│   └── screenshots/    ← Captures du lab et des résultats
-├── detection/          ← Phase 6 : code Python de l'agent IA (Isolation Forest)
+├── simulation/         ← Phases 2-4 : lab, attaques simulées
+│   ├── attaques/       ← 12 playbooks d'attaques (commandes + captures)
+│   ├── scripts/        ← scripts shell (déploiement Azure, Wazuh)
+│   └── screenshots/    ← Captures du lab et des attaques
+├── detection/          ← Phases 5-6 : règles Wazuh custom + agent IA
 └── rapports/           ← Rapports d'avancement
 ```
 
@@ -52,8 +53,8 @@ Chaîne complète de détection d'attaques Active Directory : documentation thé
 | 🏗️ | [Déploiement du lab Azure](simulation/01-deploiement-azure.md) | GOAD-Light + VirtualBox + Vagrant |
 | 🛡️ | [Installation Wazuh](simulation/02-siem-wazuh.md) | SIEM + 3 agents Windows |
 | ⚔️ | [Simulation des attaques](simulation/03-attaques.md) | 12 attaques rejouées + détection |
-| 🔍 | [Règles custom Phase 5](simulation/04-detection-avancee.md) | 7 règles Wazuh (DCSync, Kerberoasting, ADCS, MSSQL, PtH…) |
-| 🤖 | [Agent IA Phase 6](simulation/05-agent-ia.md) | Isolation Forest — Golden Ticket, PtH furtif |
+| 🔍 | [Règles custom Phase 5](detection/01-regles-wazuh.md) | 7 règles Wazuh (DCSync, Kerberoasting, ADCS, MSSQL, PtH…) |
+| 🤖 | [Agent IA Phase 6](detection/02-agent-ia.md) | Isolation Forest — Golden Ticket, PtH furtif |
 | 📊 | [Spectre de détection](simulation/spectre-detection.md) | Synthèse : détectés / angles morts / Phase 6 |
 | 🗺️ | [Mapping MITRE ATT&CK](simulation/mitre-mapping.md) | Vue matricielle des 12 attaques |
 | 📖 | [Glossaire](simulation/glossaire.md) | AD, Kerberos, Wazuh |
