@@ -59,6 +59,8 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /
 | Règle Wazuh custom — Kerberoasting | ✅ **Détecté** |
 | Règle Wazuh custom — ADCS ESC1 | ✅ **Détecté** |
 | Règle Wazuh custom — MSSQL RCE | ⚠️ Rédigée (contrainte lab) |
+| Règle Wazuh custom — AS-REP Roasting | ✅ **Détecté** |
+| LLMNR Poisoning — couverture impossible | 📝 Documenté (attaque réseau) |
 
 ---
 
@@ -332,6 +334,71 @@ Le seul compte sysadmin MSSQL sur castelblack est `sa` (mot de passe inconnu dan
 | 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ⚠️ **Rédigée** (contrainte lab : sa sans mdp connu) |
 
 **3 angles morts critiques de la Phase 4 sont désormais détectés.** La Phase 5 est complète.
+
+---
+
+## 🎯 Règle custom #5 — AS-REP Roasting détecté
+
+### Contexte
+
+L'AS-REP Roasting cible les comptes AD configurés sans pré-authentification Kerberos (`Do not require Kerberos preauthentication`). Un attaquant peut demander un AS-REP pour ce compte **sans connaître son mot de passe** — le DC répond avec un hash chiffré avec la clé du compte, crackable hors-ligne.
+
+**Signature clé :** Event 4768 (Kerberos Authentication Service Request) avec `PreAuthType = 0` (aucune pré-authentification requise).
+
+### La règle qui fonctionne
+
+```xml
+<group name="asrep,attack,">
+  <rule id="100014" level="10">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4768$</field>
+    <field name="win.eventdata.preAuthType">^0$</field>
+    <description>AS-REP Roasting: Kerberos AS-REQ without pre-authentication (account vulnerable)</description>
+    <mitre>
+      <id>T1558.004</id>
+    </mitre>
+    <group>asrep,attack,</group>
+  </rule>
+</group>
+```
+*(fichier : `/var/ossec/etc/rules/local_rules.xml` sur la VM Wazuh)*
+
+### Résultat — AS-REP Roasting alerté
+
+```
+rule.id: 100014
+eventID: 4768
+preAuthType: 0         ← pas de pré-authentification = compte vulnérable
+ticketEncryptionType: 0x17   ← RC4, hash crackable hors-ligne
+1 hit confirmé le 18 août 2026
+```
+
+**L'AS-REP Roasting (attaque 02), angle mort de la Phase 4, est maintenant détecté.** 🟢
+
+---
+
+## 🚫 LLMNR Poisoning — angle mort structurel (non comblable)
+
+L'attaque LLMNR/NBT-NS Poisoning (attaque 04) ne génère **aucun event côté Windows** : c'est une attaque **réseau pure** (l'attaquant répond à des broadcasts LLMNR avant le DC légitime pour voler des hashs NTLMv1/v2). Windows ne journalise pas le fait d'avoir reçu une réponse réseau falsifiée.
+
+**Ce qui serait nécessaire :** une solution NDR (Network Detection & Response) comme Zeek ou Suricata analysant le trafic réseau, hors périmètre de ce projet (SIEM basé sur les logs Windows).
+
+> 💡 En environnement réel, la meilleure défense est la remédiation : désactiver LLMNR via GPO (`Computer Configuration > Administrative Templates > Network > DNS Client > Turn off multicast name resolution`).
+
+---
+
+## 📊 Bilan final Phase 5 — 5 règles custom + 1 angle mort structurel
+
+| # | Règle | Event | MITRE | Statut |
+|---|-------|-------|-------|--------|
+| 100010 | DCSync | 4662 | T1003.006 | ✅ **Validé en live** (3 hits, tywin.lannister) |
+| 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 | ✅ **Validé en live** (3 hits, RC4) |
+| 100012 | ADCS ESC1 | 4887 | T1649 | ✅ **Validé en live** (2 hits, cert admin) |
+| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ⚠️ **Rédigée** (contrainte lab) |
+| 100014 | AS-REP Roasting | 4768 + preAuthType=0 | T1558.004 | ✅ **Validé en live** (1 hit) |
+| — | LLMNR Poisoning | — | T1557.001 | 🚫 **Non comblable** (attaque réseau, hors SIEM) |
+
+**4 angles morts critiques sur 6 sont maintenant détectés. Le 5ème (MSSQL) est couvert par une règle valide. Le 6ème (LLMNR) est structurellement hors périmètre d'un SIEM basé sur les logs Windows.**
 
 ---
 
