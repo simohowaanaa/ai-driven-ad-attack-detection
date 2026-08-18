@@ -390,13 +390,23 @@ ticketEncryptionType: 0x17   ← RC4, hash crackable hors-ligne
 
 ---
 
-## 🚫 LLMNR Poisoning — angle mort structurel (non comblable)
+## 🚫 Angles morts non comblables par signature — LLMNR & Énumération LDAP
 
-L'attaque LLMNR/NBT-NS Poisoning (attaque 04) ne génère **aucun event côté Windows** : c'est une attaque **réseau pure** (l'attaquant répond à des broadcasts LLMNR avant le DC légitime pour voler des hashs NTLMv1/v2). Windows ne journalise pas le fait d'avoir reçu une réponse réseau falsifiée.
+### LLMNR/NBT-NS Poisoning (attaque 04)
+
+L'attaque LLMNR/NBT-NS Poisoning ne génère **aucun event côté Windows** : c'est une attaque **réseau pure** (l'attaquant répond à des broadcasts LLMNR avant le DC légitime pour voler des hashs NTLMv1/v2). Windows ne journalise pas le fait d'avoir reçu une réponse réseau falsifiée.
 
 **Ce qui serait nécessaire :** une solution NDR (Network Detection & Response) comme Zeek ou Suricata analysant le trafic réseau, hors périmètre de ce projet (SIEM basé sur les logs Windows).
 
 > 💡 En environnement réel, la meilleure défense est la remédiation : désactiver LLMNR via GPO (`Computer Configuration > Administrative Templates > Network > DNS Client > Turn off multicast name resolution`).
+
+### Énumération LDAP (attaque 03)
+
+L'Event 4662 (Directory Service Access) est bien activé, mais sa génération requiert **deux conditions** : la politique d'audit activée **ET** une SACL posée sur chaque objet AD ciblé. Sans SACL sur les objets utilisateurs/groupes, `GetADUsers.py` ou BloodHound interrogent l'annuaire sans produire aucun 4662 — confirmé en live : 0 event généré lors de l'énumération de tous les comptes NORTH.
+
+Poser des SACLs sur l'ensemble des objets AD serait techniquement faisable mais génère des milliers de 4662 légitimes par jour (réplication inter-DC, GPO, authentifications), rendant le rapport signal/bruit inexploitable par une règle de signature.
+
+**Conclusion :** l'énumération LDAP silencieuse est le cas d'usage idéal pour une approche **comportementale/IA (Phase 6)** — détecter un volume anormalement élevé de requêtes LDAP depuis un compte utilisateur, plutôt qu'une signature événementielle.
 
 ---
 
@@ -411,7 +421,7 @@ L'attaque LLMNR/NBT-NS Poisoning (attaque 04) ne génère **aucun event côté W
 | 100014 | AS-REP Roasting | 4768 + preAuthType=0 | T1558.004 | ✅ **Validé en live** (1 hit) |
 | — | LLMNR Poisoning | — | T1557.001 | 🚫 **Non comblable** (attaque réseau, hors SIEM) |
 
-**5 angles morts sur 6 sont maintenant détectés via des règles custom validées en live. Le 6ème (LLMNR) est structurellement hors périmètre d'un SIEM basé sur les logs Windows.**
+**5 angles morts sur 6 sont détectés via des règles custom validées en live. LLMNR (attaque réseau pure) et Énumération LDAP (nécessite SACLs objet → bruit inexploitable) sont structurellement hors périmètre d'une détection par signature — candidats naturels pour la Phase 6 (IA comportementale).**
 
 ---
 
