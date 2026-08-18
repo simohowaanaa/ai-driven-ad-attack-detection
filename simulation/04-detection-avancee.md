@@ -56,7 +56,11 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /
 | Activation des audits sur `winterfell` | ✅ Confirmé |
 | Re-test DCSync avec audit + SACL actifs | ✅ Confirmé |
 | Règle Wazuh custom — DCSync | ✅ **Détecté** |
-| Règles Wazuh custom — autres angles morts | ⬜ À faire |
+| Règle Wazuh custom — Kerberoasting | ✅ **Détecté** |
+| Règle Wazuh custom — ADCS ESC1 | ✅ **Détecté** |
+| Règle Wazuh custom — MSSQL RCE | ✅ **Détecté** |
+| Règle Wazuh custom — AS-REP Roasting | ✅ **Détecté** |
+| LLMNR Poisoning — couverture impossible | 📝 Documenté (attaque réseau) |
 
 ---
 
@@ -183,6 +187,305 @@ objectServer: DS · operationType: Object Access
 ![3 hits confirmés : règle 100010 détecte le DCSync de tywin.lannister](screenshots/phase5/phase5-dcsync-rule-detected.png)
 
 > 💡 **Piste d'amélioration :** la règle actuelle matche tout event 4662, y compris la réplication légitime entre DC. Pour affiner (moins de bruit, spécifique à un abus), ajouter un filtre sur `win.eventdata.properties` contenant les GUID de réplication **ET** `win.eventdata.subjectUserName` ne correspondant PAS à un compte machine DC (`$` final) — l'attaquant utilise un compte utilisateur, pas un compte ordinateur.
+
+---
+
+## 🎯 Règle custom #2 — Kerberoasting détecté
+
+### Contexte
+
+Le Kerberoasting cible les comptes de service ayant un SPN (Service Principal Name) : l'attaquant demande un TGS pour ce compte, et Kerberos chiffre le ticket avec la clé du compte de service. Si ce compte utilise RC4 (chiffrement `0x17`), le hash peut être cracké hors ligne.
+
+**Signature clé :** Event 4769 (Kerberos TGS Request) avec `TicketEncryptionType = 0x17` (RC4-HMAC).
+
+### Difficulté rencontrée
+
+La règle initiale utilisait `<if_sid>60106</if_sid>` (SID dédié aux logons 4769 dans les règles Wazuh par défaut). Mais les événements 4769 RC4 d'un attaquant externe (arya.stark via impacket) n'atteignaient pas Wazuh — probablement filtrés ou rattachés à un SID différent du trafic bot.
+
+**Solution :** utiliser `<if_sid>60103</if_sid>` (parent générique "Windows audit success event") avec double filtre : EventID 4769 **ET** ticketEncryptionType `0x17`.
+
+### La règle qui fonctionne
+
+```xml
+<group name="kerberoasting,attack,">
+  <rule id="100011" level="10">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4769$</field>
+    <field name="win.eventdata.ticketEncryptionType">^0x17$</field>
+    <description>Possible Kerberoasting: TGS-REQ with weak RC4 encryption (0x17)</description>
+    <mitre>
+      <id>T1558.003</id>
+    </mitre>
+    <group>kerberoasting,attack,</group>
+  </rule>
+</group>
+```
+*(fichier : `/var/ossec/etc/rules/local_rules.xml` sur la VM Wazuh)*
+
+### Résultat — Kerberoasting rejoué, alerte confirmée
+
+```
+rule.id: 100011
+ticketEncryptionType: 0x17       ← RC4 = signature du Kerberoasting
+3 hits en 12:07:47 (18 août 2026) ← cluster temporel = rafale de requêtes impacket
+```
+
+Attack rejouée avec : `GetUserSPNs.py north.sevenkingdoms.local/arya.stark:Needle -dc-ip 192.168.56.11 -request`
+
+**Le Kerberoasting (attaque 01), partiellement détecté en Phase 4, est maintenant alerté précisément.** 🟢
+
+> 💡 **Piste d'amélioration :** ajouter un filtre sur `win.eventdata.clientAddress` pour exclure les DC eux-mêmes (loopback, IPs des DC), afin de réduire les faux positifs des opérations Kerberos légitimes inter-DC. Ajouter également un filtre sur `win.eventdata.serviceName` pour cibler uniquement les comptes non-machine (sans `$` final).
+
+---
+
+## 🎯 Règle custom #3 — ADCS ESC1 détecté
+
+### Contexte
+
+L'ADCS ESC1 (Active Directory Certificate Services — Enrollee Supplies Subject) permet à n'importe quel utilisateur du domaine de demander un certificat **au nom d'un autre utilisateur** (ex: administrator), obtenant ainsi un accès complet à la forêt. C'est l'une des élévations de privilèges les plus dévastatrices : Domain User → Enterprise Admin en une commande.
+
+**Signature clé :** Event 4887 (Certificate Services approved a certificate request) dans le journal Security du serveur CA.
+
+### Prérequis découverts
+
+Deux conditions sont nécessaires (et souvent oubliées) :
+1. `auditpol /set /subcategory:"Certification Services" /success:enable` — active la catégorie dans la politique d'audit Windows
+2. `certutil -setreg CA\AuditFilter 127` + redémarrage de CertSvc — active l'audit **au niveau du service CA lui-même** (filtre propre à ADCS, indépendant de la politique Windows)
+
+Sans la deuxième étape, aucun Event 4886/4887 n'est généré même avec l'audit policy activé.
+
+### La règle qui fonctionne
+
+```xml
+<group name="adcs,attack,">
+  <rule id="100012" level="12">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4887$</field>
+    <description>ADCS: Certificate issued — possible ESC1 privilege escalation</description>
+    <mitre>
+      <id>T1649</id>
+    </mitre>
+    <group>adcs,attack,</group>
+  </rule>
+</group>
+```
+*(fichier : `/var/ossec/etc/rules/local_rules.xml` sur la VM Wazuh)*
+
+### Résultat — ADCS ESC1 rejoué, alerte confirmée
+
+```
+rule.id: 100012
+eventID: 4887
+agent.name: kingslanding             ← le serveur CA (DC01 sevenkingdoms)
+2 hits le 18 août 2026 à 12:33-12:34 ← les 2 requêtes certipy successives
+```
+
+Attack rejouée avec : `certipy req -u cersei.lannister@sevenkingdoms.local -p 'il0vejaime' -ca 'SEVENKINGDOMS-CA' -target kingslanding.sevenkingdoms.local -template ESC1 -upn administrator@sevenkingdoms.local`
+
+Résultat de l'attaque : certificat émis avec UPN `administrator@sevenkingdoms.local` → hash NT admin récupérable via `certipy auth -pfx administrator.pfx`.
+
+**L'ADCS ESC1 (attaque 08), angle mort critique de la Phase 4, est maintenant détecté.** 🟢
+
+---
+
+## 🎯 Règle custom #4 — MSSQL RCE (rédigée, contrainte lab)
+
+### Contexte
+
+L'attaque MSSQL RCE exploite `xp_cmdshell` pour exécuter des commandes système depuis SQL Server. La signature est un Event 4688 (Process Creation) où le **processus parent est `sqlservr.exe`** — un cmd.exe ou powershell.exe enfant de SQL Server est quasi-systématiquement malveillant.
+
+**Prérequis :** audit Process Creation activé (fait en Phase 5) + ligne de commande incluse dans les logs (`ProcessCreationIncludeCmdLine_Enabled`).
+
+### La règle
+
+```xml
+<group name="mssql,attack,">
+  <rule id="100013" level="12">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4688$</field>
+    <field name="win.eventdata.parentProcessName">(?i)sqlservr\.exe$</field>
+    <description>MSSQL RCE: Process spawned by SQL Server (possible xp_cmdshell abuse)</description>
+    <mitre>
+      <id>T1210</id>
+    </mitre>
+    <group>mssql,attack,</group>
+  </rule>
+</group>
+```
+*(fichier : `/var/ossec/etc/rules/local_rules.xml` sur la VM Wazuh)*
+
+### Résultat — MSSQL RCE rejoué, alerte confirmée
+
+**Prérequis :** `eddard.stark` promu sysadmin via le mode single-user de SQL Server (arrêt du service, ajout du flag `-m` dans le registre `ImagePath`, redémarrage — tout local admin devient sysadmin en mode single-user, puis droits accordés normalement).
+
+```
+rule.id: 100013                   ← level 12, mail: true
+eventID: 4688
+agent.name: castelblack
+parentProcessName: C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\Binn\sqlservr.exe
+newProcessName: C:\Windows\System32\cmd.exe
+commandLine: "C:\Windows\system32\cmd.exe" /c whoami
+subjectUserName: sql_svc          ← compte de service SQL = contexte d'exécution
+7 hits confirmés le 18 août 2026
+```
+
+Attack rejouée avec : `mssqlclient.py -windows-auth 'north.sevenkingdoms.local/eddard.stark:FightP3aceAndHonor!@192.168.56.22'` puis `EXEC xp_cmdshell 'whoami';`
+
+**Le MSSQL RCE via xp_cmdshell (attaque 10), angle mort de la Phase 4, est maintenant détecté.** 🟢
+
+> 💡 La règle matche dès qu'un processus enfant (cmd.exe, powershell.exe, certutil.exe…) est créé par `sqlservr.exe` — signature très fiable d'un abus xp_cmdshell, quasi-inexistante en usage légitime de SQL Server.
+
+---
+
+## 📊 Bilan Phase 5 — 4 règles custom
+
+| # | Règle | Event | MITRE | Statut |
+|---|-------|-------|-------|--------|
+| 100010 | DCSync | 4662 | T1003.006 | ✅ **Validé en live** (3 hits, tywin.lannister identifié) |
+| 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 | ✅ **Validé en live** (3 hits, RC4 détecté) |
+| 100012 | ADCS ESC1 | 4887 | T1649 | ✅ **Validé en live** (2 hits, certificat admin émis) |
+| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ✅ **Validé en live** (7 hits, xp_cmdshell whoami) |
+
+**3 angles morts critiques de la Phase 4 sont désormais détectés.** La Phase 5 est complète.
+
+---
+
+## 🎯 Règle custom #5 — AS-REP Roasting détecté
+
+### Contexte
+
+L'AS-REP Roasting cible les comptes AD configurés sans pré-authentification Kerberos (`Do not require Kerberos preauthentication`). Un attaquant peut demander un AS-REP pour ce compte **sans connaître son mot de passe** — le DC répond avec un hash chiffré avec la clé du compte, crackable hors-ligne.
+
+**Signature clé :** Event 4768 (Kerberos Authentication Service Request) avec `PreAuthType = 0` (aucune pré-authentification requise).
+
+### La règle qui fonctionne
+
+```xml
+<group name="asrep,attack,">
+  <rule id="100014" level="10">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4768$</field>
+    <field name="win.eventdata.preAuthType">^0$</field>
+    <description>AS-REP Roasting: Kerberos AS-REQ without pre-authentication (account vulnerable)</description>
+    <mitre>
+      <id>T1558.004</id>
+    </mitre>
+    <group>asrep,attack,</group>
+  </rule>
+</group>
+```
+*(fichier : `/var/ossec/etc/rules/local_rules.xml` sur la VM Wazuh)*
+
+### Résultat — AS-REP Roasting alerté
+
+```
+rule.id: 100014
+eventID: 4768
+preAuthType: 0         ← pas de pré-authentification = compte vulnérable
+ticketEncryptionType: 0x17   ← RC4, hash crackable hors-ligne
+1 hit confirmé le 18 août 2026
+```
+
+**L'AS-REP Roasting (attaque 02), angle mort de la Phase 4, est maintenant détecté.** 🟢
+
+---
+
+## 🚫 Angles morts non comblables par signature — LLMNR & Énumération LDAP
+
+### LLMNR/NBT-NS Poisoning (attaque 04)
+
+L'attaque LLMNR/NBT-NS Poisoning ne génère **aucun event côté Windows** : c'est une attaque **réseau pure** (l'attaquant répond à des broadcasts LLMNR avant le DC légitime pour voler des hashs NTLMv1/v2). Windows ne journalise pas le fait d'avoir reçu une réponse réseau falsifiée.
+
+**Ce qui serait nécessaire :** une solution NDR (Network Detection & Response) comme Zeek ou Suricata analysant le trafic réseau, hors périmètre de ce projet (SIEM basé sur les logs Windows).
+
+> 💡 En environnement réel, la meilleure défense est la remédiation : désactiver LLMNR via GPO (`Computer Configuration > Administrative Templates > Network > DNS Client > Turn off multicast name resolution`).
+
+### Énumération LDAP (attaque 03)
+
+L'Event 4662 (Directory Service Access) est bien activé, mais sa génération requiert **deux conditions** : la politique d'audit activée **ET** une SACL posée sur chaque objet AD ciblé. Sans SACL sur les objets utilisateurs/groupes, `GetADUsers.py` ou BloodHound interrogent l'annuaire sans produire aucun 4662 — confirmé en live : 0 event généré lors de l'énumération de tous les comptes NORTH.
+
+Poser des SACLs sur l'ensemble des objets AD serait techniquement faisable mais génère des milliers de 4662 légitimes par jour (réplication inter-DC, GPO, authentifications), rendant le rapport signal/bruit inexploitable par une règle de signature.
+
+**Conclusion :** l'énumération LDAP silencieuse est le cas d'usage idéal pour une approche **comportementale/IA (Phase 6)** — détecter un volume anormalement élevé de requêtes LDAP depuis un compte utilisateur, plutôt qu'une signature événementielle.
+
+---
+
+## 🎯 Règle custom #6 — Pass-the-Hash détecté
+
+**Signature clé :** Event 4624 (Logon) avec LogonType=3 (réseau) et AuthenticationPackageName=NTLM — un logon réseau NTLM depuis un compte non-machine est la signature caractéristique d'un Pass-the-Hash.
+
+```xml
+<group name="pth,attack,">
+  <rule id="100017" level="10">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4624$</field>
+    <field name="win.eventdata.logonType">^3$</field>
+    <field name="win.eventdata.authenticationPackageName">^NTLM$</field>
+    <description>Pass-the-Hash: Network logon (type 3) with NTLM — possible credential reuse</description>
+    <mitre><id>T1550.002</id></mitre>
+    <group>pth,attack,</group>
+  </rule>
+</group>
+```
+
+**Résultat :** 5 hits live — connexion smbclient.py avec hash NTLM de jon.snow (nord.sevenkingdoms.local) détectée. 🟢
+
+---
+
+## 🎯 Règle custom #7 — Trust Abuse inter-domaine détecté
+
+**Signature clé :** Logon NTLM réseau (4624 type 3) depuis un compte du domaine NORTH sur le DC parent (kingslanding/SEVENKINGDOMS) — signal d'un mouvement latéral inter-domaine ou d'une forgerie de ticket inter-realm.
+
+La règle est chaînée sur 100017 (Pass-the-Hash) et affine sur `targetDomainName=NORTH` pour identifier spécifiquement les authentifications cross-domain sur le DC parent.
+
+```xml
+<group name="trust_abuse,attack,">
+  <rule id="100019" level="12">
+    <if_sid>100017</if_sid>
+    <field name="win.eventdata.targetDomainName" type="pcre2">(?i)north</field>
+    <description>Trust abuse: Cross-domain NTLM logon from NORTH domain — possible inter-realm attack on SEVENKINGDOMS</description>
+    <mitre><id>T1482</id></mitre>
+    <group>trust_abuse,attack,</group>
+  </rule>
+</group>
+```
+
+**Résultat :** 18 hits live — connexions NORTH→SEVENKINGDOMS détectées sur kingslanding. 🟢
+
+---
+
+## 🚫 Angles morts non comblables par signature — LLMNR, Énumération LDAP & Golden Ticket
+
+### LLMNR/NBT-NS Poisoning (attaque 04)
+
+Attaque **réseau pure** — aucun event Windows généré. Nécessite un NDR (Zeek, Suricata). Meilleure défense : désactiver LLMNR via GPO.
+
+### Énumération LDAP (attaque 03)
+
+Event 4662 requiert des SACLs sur chaque objet AD ciblé. Sans SACLs, 0 event généré (confirmé live via `GetADUsers.py`). Avec SACLs généralisées : bruit inexploitable. → **Phase 6 (IA comportementale).**
+
+### Golden Ticket (attaque 11)
+
+Ticket cryptographiquement valide — indiscernable d'un ticket légitime par signature. La règle 100018 testée (`ticketOptions=0x40810000`) générait 75 faux positifs sur du trafic Kerberos normal. → **Phase 6 (corrélation temporelle : TGS sans AS-REQ précédent).**
+
+---
+
+## 📊 Bilan final Phase 5 — 7 règles custom
+
+| # | Règle | Event | MITRE | Statut |
+|---|-------|-------|-------|--------|
+| 100010 | DCSync | 4662 | T1003.006 | ✅ **Validé en live** (3 hits, tywin.lannister) |
+| 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 | ✅ **Validé en live** (3 hits, RC4) |
+| 100012 | ADCS ESC1 | 4887 | T1649 | ✅ **Validé en live** (2 hits, cert admin) |
+| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ✅ **Validé en live** (7 hits, xp_cmdshell) |
+| 100014 | AS-REP Roasting | 4768 + preAuthType=0 | T1558.004 | ✅ **Validé en live** (1 hit) |
+| 100017 | Pass-the-Hash | 4624 + NTLM + type 3 | T1550.002 | ✅ **Validé en live** (5 hits) |
+| 100019 | Trust Abuse | 4624 NORTH→SEVENKINGDOMS | T1482 | ✅ **Validé en live** (18 hits) |
+| — | LLMNR Poisoning | — | T1557.001 | 🚫 Attaque réseau, hors SIEM |
+| — | Énumération LDAP | 4662 | T1087.002 | 🚫 SACLs objet requis → Phase 6 |
+| — | Golden Ticket | 4769 | T1558.001 | 🚫 Indétectable par signature → Phase 6 |
+
+**7 règles custom validées en live. Phase 5 complète.**
 
 ---
 
