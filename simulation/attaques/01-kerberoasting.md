@@ -5,65 +5,93 @@
 | **Catégorie** | Credential Access |
 | **MITRE ATT&CK** | [T1558.003](https://attack.mitre.org/techniques/T1558/003/) |
 | **Fiche théorique** | [`../../docs/02-credential-access/05-kerberoasting.md`](../../docs/02-credential-access/05-kerberoasting.md) |
-| **Cible** | `north.sevenkingdoms.local` (DC02 / winterfell · 192.168.56.11) |
-| **Compte attaquant** | `arya.stark` (utilisateur basique) |
+| **Cible** | `north.sevenkingdoms.local` — comptes de service avec SPN |
+| **Compte attaquant** | n'importe quel compte de domaine (ici `jon.snow`) |
 | **Outil** | impacket — `GetUserSPNs.py` |
-| **Statut détection Wazuh** | ✅ Détecté (connexion attaquant, rule 92652 niveau 6) |
+| **Statut détection Wazuh** | 🟡 Partielle — tickets RC4 visibles, non alertés |
 
 ---
 
 ## 1. 🧠 Description
-Un **compte de service** (ex. celui qui fait tourner MSSQL) est identifié dans l'AD par un **SPN** (*Service Principal Name*). La faille : **n'importe quel utilisateur authentifié** peut demander un **ticket Kerberos (TGS)** pour ce SPN, et ce ticket est **chiffré avec le mot de passe du compte de service**. L'attaquant récupère donc un blob chiffré avec le mot de passe de la cible, puis le **crack hors-ligne** (sans alerter le domaine). Comme ces comptes ont souvent des mots de passe faibles et des privilèges élevés, l'attaque est très rentable.
+
+> **Le concept en une phrase :** n'importe quel utilisateur du domaine peut demander un "bon de transport" (ticket Kerberos) pour un service — et ce bon est chiffré avec le mot de passe du compte de service. L'attaquant le récupère, rentre chez lui, et essaie de le craquer hors ligne.
+
+Dans Windows, les services réseau (bases de données, serveurs web internes…) sont identifiés par un **SPN** (Service Principal Name) — une sorte d'adresse unique. Quand un utilisateur veut accéder à un service, il demande au contrôleur de domaine un **ticket TGS**, chiffré avec le hash du mot de passe du compte de service.
+
+**La faille :** Kerberos permet à *n'importe quel* utilisateur authentifié de demander ce ticket — sans qu'on vérifie s'il a réellement le droit d'accéder au service. Et le ticket peut être demandé avec le chiffrement **RC4** (plus faible que AES), ce qui le rend plus rapide à cracker.
+
+**Ce que fait l'attaquant :**
+1. Il liste tous les comptes de service du domaine (ceux qui ont un SPN)
+2. Il demande un ticket TGS pour chacun d'eux
+3. Il exporte les tickets chiffrés et les craque hors ligne avec `hashcat` ou `john`
+4. Si le mot de passe du compte de service est faible → compromis
 
 ## 2. 🎯 Prérequis
-- **Un compte de domaine valide** (même sans privilège), ici `arya.stark`.
-- Accès réseau au contrôleur de domaine (port Kerberos 88).
+
+- Un **compte de domaine quelconque** (même sans aucun privilège)
+- Des comptes de service avec des **mots de passe faibles** dans le domaine
 
 ## 3. 💻 Exécution
+
+### Étape 1 — Lister les comptes de service et récupérer leurs tickets
+
 ```bash
-GetUserSPNs.py north.sevenkingdoms.local/arya.stark:Needle -dc-ip 192.168.56.11 -request
+GetUserSPNs.py north.sevenkingdoms.local/jon.snow:iknownothing -dc-ip 192.168.56.11 -request
 ```
+
 | Élément | Rôle |
 |---------|------|
-| `GetUserSPNs.py` | outil impacket qui liste les SPN et demande les tickets |
-| `arya.stark:Needle` | le compte utilisateur (l'attaquant authentifié) |
-| `-dc-ip 192.168.56.11` | le contrôleur de domaine ciblé (winterfell / DC02) |
-| `-request` | demande réellement les tickets TGS |
+| `GetUserSPNs.py` | outil impacket pour le Kerberoasting |
+| `jon.snow:iknownothing` | compte lambda utilisé comme point d'entrée |
+| `-request` | demander les tickets TGS en même temps que la liste |
 
-![Exécution du Kerberoasting et hashs $krb5tgs$ extraits](../screenshots/attacks/attack-01-kerberoasting-command.png)
+La commande renvoie directement les **hashes à cracker**, au format `$krb5tgs$...`.
+
+![Liste des SPN et tickets récupérés](../screenshots/attacks/attack-01-kerberoasting-command.png)
+
+### Étape 2 — Cracker le hash hors ligne
+
+```bash
+hashcat -m 13100 hashes.txt wordlist.txt
+```
+
+Si le mot de passe du compte de service est dans la wordlist → il apparaît en clair.
 
 ## 4. 📤 Résultat
-3 comptes kerberoastables trouvés et leurs tickets extraits (format `$krb5tgs$23$...`, le **`23`** = **RC4** = crackable via `hashcat -m 13100`) :
 
-| Compte | SPN | Délégation |
-|--------|-----|------------|
-| `sql_svc` | `MSSQLSvc/castelblack.north.sevenkingdoms.local:1433` | — |
-| `sansa.stark` | `HTTP/eyrie.north.sevenkingdoms.local` | — |
-| `jon.snow` | `HTTP/thewall.north.sevenkingdoms.local` | constrained |
+Les tickets des comptes à SPN sont récupérés et prêts à être crackés. Si un compte de service a un mot de passe faible ou présent dans une wordlist, l'attaquant obtient ses identifiants — et donc l'accès à tous les services qu'il gère.
 
-## 5. 🛡️ Détection dans Wazuh
+## 5. 🛡️ Détection dans Wazuh — 🟡 partielle
+
 **Recherche (Threat Hunting → Events) :**
 ```
-data.win.eventdata.targetUserName:arya*
+data.win.system.eventID:4769 and data.win.eventdata.ticketEncryptionType:0x17
 ```
-**Event(s) Windows concerné(s) :** `4769` (demande de ticket TGS), `4624` (connexion). Le marqueur du Kerberoasting est un `4769` avec **TicketEncryptionType = `0x17`** (RC4).
 
-**Résultat :** 3 alertes de **niveau 6** (rule **92652** — *NTLM remote logon, possible pass-the-hash*) correspondant aux 3 lancements, sur l'agent **winterfell**. Wazuh a repéré la **connexion réseau anormale** de l'outil d'attaque.
+**Event Windows concerné :** `4769` (*Kerberos Service Ticket was requested*) avec `ticketEncryptionType: 0x17` (RC4 — le chiffrement faible demandé par l'attaquant).
 
-![Détection dans Wazuh — alertes niveau 6 liées à arya.stark](../screenshots/attacks/attack-01-kerberoasting-wazuh.png)
+**Résultat : 3 hits** — les demandes de tickets RC4 **sont bien collectées par Wazuh**. Le problème : elles **ressemblent à du trafic légitime** (de nombreuses applications legacy demandent encore RC4) → **non alertées** par défaut.
+
+![Tickets RC4 visibles dans Wazuh](../screenshots/attacks/attack-01-kerberoasting-wazuh.png)
+
+**Ce qui manque pour une vraie alerte :** une règle qui dit "si un compte demande beaucoup de tickets RC4 en peu de temps → suspect". C'est l'objet de la règle `100011` (Phase 5).
 
 ## 6. 🎓 Analyse & leçon
-| Ce que Wazuh voit | Règle | Niveau | Statut |
-|-------------------|-------|--------|--------|
-| Connexion NTLM anormale de l'attaquant | 92652 | 6 🚨 | ✅ Détecté par défaut |
-| Le motif Kerberoasting *précis* (rafale de TGS RC4) | 60106 | 3 | ⚠️ Noyé dans le trafic normal |
 
-👉 Le ruleset par défaut alerte sur la connexion suspecte, mais **ne nomme pas explicitement "Kerberoasting"**. Créer une règle personnalisée qui élève les `4769` RC4 en alerte dédiée sera l'objet de la **Phase 5**.
+> **Ce qui rend cette attaque insidieuse :** elle n'exploite aucune faille logicielle. C'est une fonctionnalité normale de Kerberos, utilisée de manière abusive. L'attaque se fait entièrement hors ligne — le réseau ne voit qu'une demande de ticket ordinaire.
+
+**Deux points clés :**
+- Wazuh *voit* les events 4769 avec RC4, mais sans règle spécifique, il ne sait pas que c'est une attaque.
+- La vraie défense est de s'assurer que les comptes de service ont des **mots de passe longs et complexes** (ou mieux : des **gMSA**, dont le mot de passe de 240 caractères est automatiquement géré par AD).
+
+→ La règle `100011` (Phase 5) ajoute l'alerte manquante.
 
 ## 7. 🔧 Remédiation
-- Utiliser des **gMSA** (mots de passe gérés, longs, tournants) pour les comptes de service.
-- Désactiver **RC4** au profit d'**AES** (tickets non triviaux à cracker).
-- Surveiller les **rafales de 4769 en RC4** demandées par un compte utilisateur (règle Phase 5).
+
+- Utiliser des **gMSA** (Group Managed Service Accounts) — mots de passe de 240 caractères, changés automatiquement.
+- Forcer le chiffrement **AES** (supprimer RC4) pour les comptes de service.
+- Auditer régulièrement les SPN : limiter leur nombre, supprimer les comptes inutiles.
+- Activer l'audit `4769` et alerter sur les demandes RC4 en volume (règle 100011, Phase 5).
 
 ---
 
