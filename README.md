@@ -30,13 +30,15 @@ Ce projet construit une **chaîne complète de détection d'attaques Active Dire
 
 ## Sommaire
 
-- [Architecture du lab](#-architecture-du-lab)
+- [Architecture du lab](#️-architecture-du-lab)
 - [Organisation du dépôt](#-organisation-du-dépôt)
 - [Phase 1 — Documentation](#-phase-1--documentation-des-48-attaques)
-- [Phase 4 — Simulation](#-phase-4--simulation-des-attaques)
+- [Phase 2 — Lab Azure](#️-phase-2--déploiement-du-lab-azure)
+- [Phase 3 — SIEM Wazuh](#️-phase-3--installation-du-siem-wazuh)
+- [Phase 4 — Simulation](#️-phase-4--simulation-des-attaques)
 - [Phase 5 — Règles custom](#-phase-5--règles-wazuh-custom)
 - [Phase 6 — Agent IA](#-phase-6--agent-ia-isolation-forest)
-- [Stack technique](#-stack-technique)
+- [Stack technique](#️-stack-technique)
 
 ---
 
@@ -125,6 +127,38 @@ Les deux domaines sont reliés par un **trust inter-forêt**, permettant de simu
 | Domain Trusts | 2 | Trust Abuse, Golden gMSA |
 
 → [Catalogue complet](docs/README.md)
+
+---
+
+## 🏗️ Phase 2 — Déploiement du lab (Azure)
+
+Lab Active Directory vulnérable [GOAD-Light](https://github.com/Orange-Cyberdefense/GOAD) déployé sur une VM Linux Azure avec virtualisation imbriquée (VirtualBox + Vagrant + Ansible).
+
+| Étape | Détail |
+|-------|--------|
+| **VM Azure** | Ubuntu 24.04 · Standard_E4s_v3 · 4 vCPU · 32 Go RAM · nested virt activée |
+| **GOAD-Light** | 3 machines Windows (2 DC + 1 serveur membre) provisionnées via Ansible |
+| **Réseau** | Host-only `192.168.56.0/24` — isolé, sans accès internet |
+| **Accès** | SSH + tunnel local depuis le PC · RDP tunnelé pour les sessions interactives |
+
+→ [Guide de déploiement](simulation/01-deploiement-azure.md) · [Script d'installation](simulation/scripts/azure-goad-setup.sh)
+
+---
+
+## 🛡️ Phase 3 — Installation du SIEM Wazuh
+
+Wazuh déployé sur une 4ᵉ VM (192.168.56.51) avec agents installés sur les 3 machines Windows.
+
+| Composant | Rôle |
+|-----------|------|
+| **Wazuh Indexer** | Stockage et indexation des alertes (OpenSearch) |
+| **Wazuh Manager** | Réception des logs agents, application des règles |
+| **Wazuh Dashboard** | Interface de visualisation (Kibana-like) |
+| **Agents Windows** | Collecte des Event Logs sur DC01, DC02, SRV02 |
+
+**Couverture :** 3/3 agents actifs · 100 % des machines du lab supervisées.
+
+→ [Guide d'installation Wazuh](simulation/02-siem-wazuh.md)
 
 ---
 
