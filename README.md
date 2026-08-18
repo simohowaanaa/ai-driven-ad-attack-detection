@@ -79,36 +79,93 @@ Les deux domaines sont reliés par un **trust inter-forêt**, permettant de simu
 
 ## 📁 Organisation du dépôt
 
+Le projet se lit dans l'ordre des phases. Chaque dossier correspond à une étape logique de la démarche :
+
 ```
-.
-├── docs/                         ← Phase 1 : 48 fiches théoriques d'attaques AD
-│   ├── README.md                    Catalogue par tactique MITRE ATT&CK
-│   ├── 01-recon/
-│   ├── 02-credential-access/
-│   ├── 03-lateral-movement/
-│   ├── 04-privilege-escalation/
-│   ├── 05-persistence/
-│   ├── 06-defense-evasion/
-│   └── 07-domain-trusts/
-│
-├── simulation/                   ← Phases 2–4 : lab, déploiement, attaques
-│   ├── 01-deploiement-azure.md      Guide de déploiement GOAD-Light sur Azure
-│   ├── 02-siem-wazuh.md             Installation Wazuh (manager + agents)
-│   ├── 03-attaques.md               Index des 12 attaques simulées
-│   ├── attaques/                    12 playbooks (commandes + captures Wazuh)
-│   ├── spectre-detection.md         Synthèse : détectés / partiels / angles morts
-│   ├── mitre-mapping.md             Vue MITRE ATT&CK des 12 attaques
-│   ├── glossaire.md                 Glossaire AD, Kerberos, Wazuh
-│   ├── scripts/                     Scripts shell (déploiement, démarrage Wazuh)
-│   └── screenshots/                 Captures du lab et des attaques
-│
-├── detection/                    ← Phases 5–6 : règles Wazuh custom + agent IA
-│   ├── 01-regles-wazuh.md           7 règles custom validées en live
-│   ├── 02-agent-ia.md               Pipeline Isolation Forest + résultats
-│   └── anomaly_detection.py         Script Python de l'agent IA
-│
-└── rapports/                     ← Rapports d'avancement superviseur
+Phase 1          Phase 2 + 3         Phase 4              Phase 5 + 6
+  │                   │                  │                     │
+docs/           simulation/         simulation/            detection/
+  │            (déploiement)         (attaques/)          (règles + IA)
+  │                   │                  │                     │
+On documente    On construit        On rejoue les        On détecte ce
+les attaques    le lab et le        attaques et on       que Wazuh seul
+sur le papier   SIEM Wazuh          observe ce que       ne voyait pas
+                                    Wazuh détecte
 ```
+
+---
+
+### 📂 `docs/` — La bibliothèque (Phase 1)
+
+> **Pour qui ?** Toute personne qui veut comprendre ce qu'est une attaque AD avant de la voir en action.
+
+48 fiches théoriques, une par attaque. Chaque fiche répond à : *Comment fonctionne l'attaque ? Quels logs elle génère ? Comment la détecter ? Comment s'en protéger ?*
+
+```
+docs/
+├── 01-recon/                 ← Attaques de reconnaissance (BloodHound, SPN Scanning…)
+├── 02-credential-access/     ← Vol de credentials (Kerberoasting, DCSync, LLMNR…)
+├── 03-lateral-movement/      ← Mouvement latéral (Pass-the-Hash, NTLM Relay…)
+├── 04-privilege-escalation/  ← Élévation de privilèges (Golden Ticket, ADCS ESC1…)
+├── 05-persistence/           ← Persistance (Skeleton Key, DCShadow, GPO Abuse…)
+├── 06-defense-evasion/       ← Évasion (Zerologon, Shadow Credentials…)
+└── 07-domain-trusts/         ← Attaques inter-domaines (Trust Abuse, Golden gMSA)
+```
+
+→ [Ouvrir le catalogue complet](docs/README.md)
+
+---
+
+### 📂 `simulation/` — Le lab en pratique (Phases 2, 3 et 4)
+
+> **Pour qui ?** Quelqu'un qui veut reproduire le projet ou comprendre comment le lab est construit et comment les attaques ont été rejouées.
+
+Ce dossier contient tout ce qui a été fait concrètement : monter le lab, brancher le SIEM, puis rejouer chaque attaque et observer ce que Wazuh détecte (ou ne détecte pas).
+
+```
+simulation/
+├── 01-deploiement-azure.md   ← Comment déployer le lab AD sur Azure (Phase 2)
+├── 02-siem-wazuh.md          ← Comment installer et configurer Wazuh (Phase 3)
+├── 03-attaques.md            ← Index des 12 attaques simulées + résultats (Phase 4)
+│
+├── attaques/                 ← Un fichier par attaque : commandes exactes + captures
+│   ├── 01-kerberoasting.md
+│   ├── 02-asrep-roasting.md
+│   └── … (12 au total)
+│
+├── spectre-detection.md      ← Synthèse : quelles attaques sont détectées, lesquelles pas
+├── mitre-mapping.md          ← Les 12 attaques positionnées sur la matrice MITRE ATT&CK
+├── glossaire.md              ← Définitions : AD, Kerberos, TGT, DCSync, SIEM…
+├── scripts/                  ← Scripts shell pour déployer le lab et démarrer Wazuh
+└── screenshots/              ← Captures d'écran du lab et de chaque attaque
+```
+
+→ [Lire le guide de déploiement](simulation/01-deploiement-azure.md) · [Voir les attaques](simulation/03-attaques.md)
+
+---
+
+### 📂 `detection/` — Combler les angles morts (Phases 5 et 6)
+
+> **Pour qui ?** Quelqu'un qui veut comprendre comment on passe d'un SIEM "de base" à une détection avancée, et comment l'IA prend le relais là où les règles s'arrêtent.
+
+La Phase 4 a montré que 6 attaques sur 12 passaient complètement inaperçues. Ce dossier contient la réponse : des règles Wazuh sur-mesure pour les attaques avec signature, et un agent IA pour les attaques sans signature (comme le Golden Ticket).
+
+```
+detection/
+├── 01-regles-wazuh.md        ← 7 règles écrites à la main, testées en live (Phase 5)
+├── 02-agent-ia.md            ← Comment l'Isolation Forest détecte les anomalies (Phase 6)
+└── anomaly_detection.py      ← Le script Python à exécuter sur les logs Wazuh
+```
+
+→ [Lire les règles custom](detection/01-regles-wazuh.md) · [Lire la doc de l'agent IA](detection/02-agent-ia.md)
+
+---
+
+### 📂 `rapports/` — Documents officiels
+
+Rapports d'avancement remis au superviseur Dataprotect.
+
+→ [Rapport août 2026 (PDF)](rapports/rapport-avancement-2026-08-04.pdf)
 
 ---
 
