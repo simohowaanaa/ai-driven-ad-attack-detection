@@ -58,7 +58,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /
 | Règle Wazuh custom — DCSync | ✅ **Détecté** |
 | Règle Wazuh custom — Kerberoasting | ✅ **Détecté** |
 | Règle Wazuh custom — ADCS ESC1 | ✅ **Détecté** |
-| Règle Wazuh custom — MSSQL RCE | ⚠️ Rédigée (contrainte lab) |
+| Règle Wazuh custom — MSSQL RCE | ✅ **Détecté** |
 | Règle Wazuh custom — AS-REP Roasting | ✅ **Détecté** |
 | LLMNR Poisoning — couverture impossible | 📝 Documenté (attaque réseau) |
 
@@ -314,13 +314,26 @@ L'attaque MSSQL RCE exploite `xp_cmdshell` pour exécuter des commandes système
 ```
 *(fichier : `/var/ossec/etc/rules/local_rules.xml` sur la VM Wazuh)*
 
-### Contrainte lab — non testée en live
+### Résultat — MSSQL RCE rejoué, alerte confirmée
 
-Le seul compte sysadmin MSSQL sur castelblack est `sa` (mot de passe inconnu dans GOAD-Light). Ni les comptes de domaine NORTH (brandon.stark, eddard.stark), ni le service account `sql_svc` ne disposent des droits `sp_configure` / `xp_cmdshell`. La règle n'a donc pas pu être déclenchée par une attaque réelle.
+**Prérequis :** `eddard.stark` promu sysadmin via le mode single-user de SQL Server (arrêt du service, ajout du flag `-m` dans le registre `ImagePath`, redémarrage — tout local admin devient sysadmin en mode single-user, puis droits accordés normalement).
 
-**Validation logique via wazuh-logtest :** l'event 4688 est bien décodé avec tous les champs nécessaires (`win.eventdata.parentProcessName`, `win.system.eventID`). La règle suit le même pattern `if_sid=60103` que les 3 règles validées en live — sa logique de détection est correcte.
+```
+rule.id: 100013                   ← level 12, mail: true
+eventID: 4688
+agent.name: castelblack
+parentProcessName: C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\Binn\sqlservr.exe
+newProcessName: C:\Windows\System32\cmd.exe
+commandLine: "C:\Windows\system32\cmd.exe" /c whoami
+subjectUserName: sql_svc          ← compte de service SQL = contexte d'exécution
+7 hits confirmés le 18 août 2026
+```
 
-> 💡 En environnement réel, cette règle déclencherait une alerte dès qu'un processus enfant (cmd.exe, powershell.exe, certutil.exe…) est créé par sqlservr.exe — signature très fiable d'un abus xp_cmdshell, quasi-inexistante en usage légitime.
+Attack rejouée avec : `mssqlclient.py -windows-auth 'north.sevenkingdoms.local/eddard.stark:FightP3aceAndHonor!@192.168.56.22'` puis `EXEC xp_cmdshell 'whoami';`
+
+**Le MSSQL RCE via xp_cmdshell (attaque 10), angle mort de la Phase 4, est maintenant détecté.** 🟢
+
+> 💡 La règle matche dès qu'un processus enfant (cmd.exe, powershell.exe, certutil.exe…) est créé par `sqlservr.exe` — signature très fiable d'un abus xp_cmdshell, quasi-inexistante en usage légitime de SQL Server.
 
 ---
 
@@ -331,7 +344,7 @@ Le seul compte sysadmin MSSQL sur castelblack est `sa` (mot de passe inconnu dan
 | 100010 | DCSync | 4662 | T1003.006 | ✅ **Validé en live** (3 hits, tywin.lannister identifié) |
 | 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 | ✅ **Validé en live** (3 hits, RC4 détecté) |
 | 100012 | ADCS ESC1 | 4887 | T1649 | ✅ **Validé en live** (2 hits, certificat admin émis) |
-| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ⚠️ **Rédigée** (contrainte lab : sa sans mdp connu) |
+| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ✅ **Validé en live** (7 hits, xp_cmdshell whoami) |
 
 **3 angles morts critiques de la Phase 4 sont désormais détectés.** La Phase 5 est complète.
 
@@ -394,11 +407,11 @@ L'attaque LLMNR/NBT-NS Poisoning (attaque 04) ne génère **aucun event côté W
 | 100010 | DCSync | 4662 | T1003.006 | ✅ **Validé en live** (3 hits, tywin.lannister) |
 | 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 | ✅ **Validé en live** (3 hits, RC4) |
 | 100012 | ADCS ESC1 | 4887 | T1649 | ✅ **Validé en live** (2 hits, cert admin) |
-| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ⚠️ **Rédigée** (contrainte lab) |
+| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ✅ **Validé en live** (7 hits, xp_cmdshell whoami) |
 | 100014 | AS-REP Roasting | 4768 + preAuthType=0 | T1558.004 | ✅ **Validé en live** (1 hit) |
 | — | LLMNR Poisoning | — | T1557.001 | 🚫 **Non comblable** (attaque réseau, hors SIEM) |
 
-**4 angles morts critiques sur 6 sont maintenant détectés. Le 5ème (MSSQL) est couvert par une règle valide. Le 6ème (LLMNR) est structurellement hors périmètre d'un SIEM basé sur les logs Windows.**
+**5 angles morts sur 6 sont maintenant détectés via des règles custom validées en live. Le 6ème (LLMNR) est structurellement hors périmètre d'un SIEM basé sur les logs Windows.**
 
 ---
 
