@@ -79,28 +79,36 @@ Le compte `robb.stark@NORTH` a effectué 610 demandes de tickets TGS sans jamais
 
 ## Architecture du lab
 
+> Lab Active Directory vulnérable (GOAD-Light) déployé sur une VM Linux Azure avec virtualisation imbriquée (VirtualBox).
+
 ```
-  VM Azure Linux — Ubuntu 24.04 — Standard_E4s_v3 — 4 vCPU / 32 Go RAM
-  +-------------------------------------------------------------------+
-  |                         VirtualBox                                 |
-  |                                                                    |
-  |  +--------------+   +--------------+   +----------------------+   |
-  |  |     DC01     |   |     DC02     |   |        SRV02         |   |
-  |  | kingslanding |   |  winterfell  |   |     castelblack      |   |
-  |  | .10          |   | .11          |   | .22 — SQL Server     |   |
-  |  | sevenkingdoms|   | north.seven..|   | north.sevenkingdoms  |   |
-  |  +------+-------+   +------+-------+   +-----------+----------+   |
-  |         | agent Wazuh     | agent Wazuh            | agent Wazuh  |
-  |         +------------------+-----------------------+              |
-  |                     +------+------+                               |
-  |                     | Wazuh SIEM  | .51                           |
-  |                     +-------------+                               |
-  |              Réseau isolé — 192.168.56.0/24                      |
-  +-------------------------------------------------------------------+
-              Accès SSH + tunnel depuis le poste local
+  VM Azure Linux · Ubuntu 24.04 · Standard_E4s_v3 · 4 vCPU / 32 Go RAM
+  +---------------------------------------------------------------------+
+  |                           VirtualBox                                 |
+  |                                                                      |
+  |  +----------------+   +----------------+   +--------------------+   |
+  |  |      DC01      |   |      DC02      |   |        SRV02       |   |
+  |  |  kingslanding  |   |  winterfell    |   |    castelblack     |   |
+  |  |      .10       |   |      .11       |   |    .22 · MSSQL     |   |
+  |  +-------+--------+   +-------+--------+   +---------+----------+   |
+  |          | Wazuh agent        | Wazuh agent           | Wazuh agent  |
+  |          +--------------------+-----------------------+              |
+  |                         +-----+------+                               |
+  |                         | Wazuh .51  | SIEM — logs · règles · UI    |
+  |                         +------------+                               |
+  |                Réseau host-only · 192.168.56.0/24                   |
+  +---------------------------------------------------------------------+
+                    SSH + tunnel depuis le PC local
 ```
 
-Les deux domaines (`sevenkingdoms.local` et `north.sevenkingdoms.local`) sont reliés par un trust parent-enfant pour simuler les attaques inter-domaines.
+| Machine | IP | Rôle | Domaine |
+|---------|:--:|------|---------|
+| `kingslanding` | .10 | Contrôleur de domaine principal (DC01) | `sevenkingdoms.local` |
+| `winterfell` | .11 | Contrôleur de domaine enfant (DC02) | `north.sevenkingdoms.local` |
+| `castelblack` | .22 | Serveur membre + MSSQL Server | `north.sevenkingdoms.local` |
+| `wazuh` | .51 | SIEM — indexer + manager + dashboard | — |
+
+Les deux domaines sont reliés par un trust parent-enfant pour simuler les attaques inter-domaines.
 
 ---
 
