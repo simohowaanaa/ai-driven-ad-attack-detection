@@ -4,13 +4,6 @@
 **Auteurs :** Maimouni Mohammed & Chafak Othmane
 **Encadrant entreprise :** Benkirane Abbes · **Encadrant école :** Bakkaliyeddi Othman
 
-![Phase 1](https://img.shields.io/badge/Phase%201%20Documentation-done-22c55e?style=flat-square)
-![Phase 2](https://img.shields.io/badge/Phase%202%20Lab-done-22c55e?style=flat-square)
-![Phase 3](https://img.shields.io/badge/Phase%203%20Wazuh-done-22c55e?style=flat-square)
-![Phase 4](https://img.shields.io/badge/Phase%204%20Simulation-done-22c55e?style=flat-square)
-![Phase 5](https://img.shields.io/badge/Phase%205%20Rules-done-22c55e?style=flat-square)
-![Phase 6](https://img.shields.io/badge/Phase%206%20AI%20Agent-done-22c55e?style=flat-square)
-
 ---
 
 ## En deux phrases
