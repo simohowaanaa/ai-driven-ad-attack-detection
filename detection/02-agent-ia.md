@@ -1,10 +1,10 @@
-# 🤖 Phase 6 — Agent IA de détection d'anomalies AD
+#  Phase 6 — Agent IA de détection d'anomalies AD
 
 > **But :** détecter les attaques que les règles de signature (Phase 5) ne peuvent pas capturer — Golden Ticket, énumération LDAP, Pass-the-Hash furtif — en apprenant le comportement normal des comptes et en alertant sur les anomalies.
 
 ---
 
-## 🧠 Pourquoi l'IA après les règles ?
+##  Pourquoi l'IA après les règles ?
 
 Les règles Wazuh (Phase 5) détectent les attaques à **signature fixe** : un event précis, un champ précis, une valeur précise. Mais certaines attaques sont **cryptographiquement légitimes** — le DC lui-même ne voit aucune différence.
 
@@ -17,7 +17,7 @@ Les règles Wazuh (Phase 5) détectent les attaques à **signature fixe** : un e
 
 ---
 
-## 🎯 Attaques ciblées
+##  Attaques ciblées
 
 | Attaque | Pourquoi l'IA et pas une règle |
 |---------|-------------------------------|
@@ -27,10 +27,10 @@ Les règles Wazuh (Phase 5) détectent les attaques à **signature fixe** : un e
 
 ---
 
-## 🏗️ Architecture du pipeline
+##  Architecture du pipeline
 
 ```
-Wazuh OpenSearch  →  Export JSON  →  Feature Engineering  →  Isolation Forest  →  Scores d'anomalie
+Wazuh OpenSearch    Export JSON    Feature Engineering    Isolation Forest    Scores d'anomalie
 (wazuh-alerts-*)      5000 alerts     par compte/24h           sklearn                rapport
 ```
 
@@ -51,7 +51,7 @@ Wazuh OpenSearch  →  Export JSON  →  Feature Engineering  →  Isolation For
 
 ---
 
-## ⚙️ Modèle — Isolation Forest
+##  Modèle — Isolation Forest
 
 **Choix du modèle :** Isolation Forest (scikit-learn) — algorithme de détection d'anomalies **non supervisé**, idéal ici car :
 - On n'a pas de labels "attaque/normal" propres sur les données réelles
@@ -67,7 +67,7 @@ Wazuh OpenSearch  →  Export JSON  →  Feature Engineering  →  Isolation For
 
 ---
 
-## 📊 Résultats — 18 août 2026
+##  Résultats — 18 août 2026
 
 **Données :** 5000 alertes Wazuh des dernières 24h, 23 comptes non-machine analysés.
 
@@ -77,7 +77,7 @@ Wazuh OpenSearch  →  Export JSON  →  Feature Engineering  →  Isolation For
 |--------|-------|--------|--------|------|--------------|----------------|
 | **robb.stark** | -0.170 | 1461 | 56 | 0 | 0 | Bot RDP automatisé (`bot_rdp.ps1`) — volume anormal |
 | **eddard.stark** | -0.086 | 114 | 17 | 17 | 0 | **Pass-the-Hash** — 17 logons NTLM inhabituels |
-| **robb.stark@NORTH...** | -0.083 | 610 | 46 | 0 | 610 | **Golden Ticket** — 610 TGS sans TGT précédent ✅ |
+| **robb.stark@NORTH...** | -0.083 | 610 | 46 | 0 | 610 | **Golden Ticket** — 610 TGS sans TGT précédent  |
 | **sql_svc** | -0.022 | 20 | 7 | 3 | 0 | **MSSQL RCE** — alertes xp_cmdshell + logons suspects |
 
 ### Comptes normaux (extrait)
@@ -90,18 +90,18 @@ Wazuh OpenSearch  →  Export JSON  →  Feature Engineering  →  Isolation For
 
 ---
 
-## 🔑 Résultat clé — Golden Ticket détecté
+##  Résultat clé — Golden Ticket détecté
 
 ```
 robb.stark@NORTH.SEVENKINGDOMS.LOCAL
-  tgs_no_tgt = 610  ← 610 tickets TGS présentés sans AS-REQ (TGT) précédent
+  tgs_no_tgt = 610   610 tickets TGS présentés sans AS-REQ (TGT) précédent
 ```
 
 **C'est exactement la signature du Golden Ticket** : l'attaquant forge un TGT valide hors-ligne avec le hash krbtgt, le présente directement au KDC pour obtenir des TGS — aucune demande de TGT normale n'apparaît dans les logs. Cette anomalie est **indétectable par règle signature** mais ressort clairement dans l'Isolation Forest.
 
 ---
 
-## 🛠️ Script
+##  Script
 
 Fichier : [`detection/anomaly_detection.py`](./anomaly_detection.py)
 
@@ -118,18 +118,18 @@ python3 anomaly_detection.py /tmp/wazuh_alerts.json
 
 ---
 
-## 📊 Bilan Phase 6
+##  Bilan Phase 6
 
 | Attaque | Méthode | Résultat |
 |---------|---------|----------|
-| Golden Ticket | `tgs_no_tgt` feature | ✅ Détecté (610 TGS sans TGT) |
-| Pass-the-Hash | `nb_ntlm` + alertes custom | ✅ Détecté (eddard.stark, 17 NTLM) |
-| MSSQL RCE (confirmation) | `nb_custom` + `nb_type3` | ✅ Confirmé (sql_svc) |
-| Comportement bot | Volume extrême | ✅ Détecté (robb.stark, 1461 events) |
-| Énumération LDAP | `nb_4662` | ⚠️ Pas assez de données (SACLs non posées) |
+| Golden Ticket | `tgs_no_tgt` feature |  Détecté (610 TGS sans TGT) |
+| Pass-the-Hash | `nb_ntlm` + alertes custom |  Détecté (eddard.stark, 17 NTLM) |
+| MSSQL RCE (confirmation) | `nb_custom` + `nb_type3` |  Confirmé (sql_svc) |
+| Comportement bot | Volume extrême |  Détecté (robb.stark, 1461 events) |
+| Énumération LDAP | `nb_4662` |  Pas assez de données (SACLs non posées) |
 
 **L'agent IA complète les règles de signature : les attaques cryptographiquement valides (Golden Ticket) sont maintenant détectées par comportement.**
 
 ---
 
-⬅️ Retour aux [règles de détection (Phase 5)](./01-regles-wazuh.md)
+⬅ Retour aux [règles de détection (Phase 5)](./01-regles-wazuh.md)

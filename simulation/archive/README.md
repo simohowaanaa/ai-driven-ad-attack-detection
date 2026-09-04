@@ -35,7 +35,7 @@ Après plusieurs tentatives de correction (voir les scripts ci-dessous), le prob
 La solution retenue : déployer sur une **VM Linux sur Azure**, sans Hyper-V ni WSL2, avec VirtualBox directement sur Linux.
 
 Résultat : GOAD-Light déployé en quelques heures, sans problème.  
-→ [Voir la démarche retenue](../01-deploiement-azure.md)
+ [Voir la démarche retenue](../01-deploiement-azure.md)
 
 ---
 

@@ -1,12 +1,12 @@
-# 🏗️ Phase 2 — Montage du Lab LOCAL (GOAD-Light sur VirtualBox)
+#  Phase 2 — Montage du Lab LOCAL (GOAD-Light sur VirtualBox)
 
-> ⚠️ **APPROCHE ABANDONNÉE — ne pas suivre ce guide pour déployer.**
+>  **APPROCHE ABANDONNÉE — ne pas suivre ce guide pour déployer.**
 > Ce montage **local** (Windows + VirtualBox + **Hyper-V** + WSL2) s'est heurté à un mur : **WinRM fondamentalement instable** dans cet empilement — les VM bootent mais Vagrant/Ansible ne les configurent pas de façon fiable (erreurs `device not ready`, `init_auth timeout`, VM injoignables par Ansible).
-> ✅ **Solution retenue et fonctionnelle : déploiement sur une VM Linux Azure** → voir **[`01-deploiement-azure.md`](../01-deploiement-azure.md)**.
+>  **Solution retenue et fonctionnelle : déploiement sur une VM Linux Azure**  voir **[`01-deploiement-azure.md`](../01-deploiement-azure.md)**.
 > Ce document est conservé comme **trace de la démarche** (ce qui a été tenté, le diagnostic, le pivot vers Azure) — utile pour le mémoire/soutenance.
 
 > **But :** construire un Active Directory vulnérable et isolé pour rejouer les 48 attaques et générer des logs.
-> **Légende :** 🧑‍💻 = action à faire par toi · ✅ = déjà fait · 📸 = capture d'écran à prendre pour le rapport/GitHub.
+> **Légende :** ‍ = action à faire par toi ·  = déjà fait ·  = capture d'écran à prendre pour le rapport/GitHub.
 
 ---
 
@@ -14,13 +14,13 @@
 
 | Élément | Valeur |
 |---------|--------|
-| Hôte | Windows 11 · i9-14900HX · 31.7 Go RAM · VT-x ✅ |
+| Hôte | Windows 11 · i9-14900HX · 31.7 Go RAM · VT-x  |
 | Base vulnérable | **GOAD-Light** (2 VM Windows Server) |
 | Attaquant | Kali Linux |
 | Contrôleur Ansible | WSL2 (Ubuntu) |
 | Provider | VirtualBox |
 
-**Pourquoi GOAD-Light ?** 2 VM au lieu de 5 → tient large dans 32 Go, couvre ~90 % de nos attaques (Cat. 1 à 6). On pourra passer au GOAD complet plus tard pour les *trusts* (Cat. 7).
+**Pourquoi GOAD-Light ?** 2 VM au lieu de 5  tient large dans 32 Go, couvre ~90 % de nos attaques (Cat. 1 à 6). On pourra passer au GOAD complet plus tard pour les *trusts* (Cat. 7).
 
 ---
 
@@ -28,20 +28,20 @@
 
 | Composant | État |
 |-----------|------|
-| Virtualisation (VT-x) | ✅ activée |
-| RAM / disque | ✅ OK |
-| git / python / winget | ✅ présents |
+| Virtualisation (VT-x) |  activée |
+| RAM / disque |  OK |
+| git / python / winget |  présents |
 | WSL2 | ⬜ à réparer/installer |
 | VirtualBox | ⬜ à installer |
 | Vagrant | ⬜ à installer |
 
 ---
 
-## Étape 1 — 🧑‍💻 Installer / réparer WSL2 (Ubuntu)
+## Étape 1 — ‍ Installer / réparer WSL2 (Ubuntu)
 
 WSL2 nous sert de **contrôleur Ansible** (la partie qui configure l'AD vulnérable).
 
-1. Ouvre **PowerShell en administrateur** (clic droit sur le menu Démarrer → *Terminal (Admin)*).
+1. Ouvre **PowerShell en administrateur** (clic droit sur le menu Démarrer  *Terminal (Admin)*).
 2. Lance :
    ```powershell
    wsl --install -d Ubuntu
@@ -52,13 +52,13 @@ WSL2 nous sert de **contrôleur Ansible** (la partie qui configure l'AD vulnéra
    ```powershell
    wsl -l -v
    ```
-   → tu dois voir `Ubuntu ... VERSION 2`.
+    tu dois voir `Ubuntu ... VERSION 2`.
 
-📸 **Capture 1 :** la sortie de `wsl -l -v` montrant Ubuntu en version 2.
+ **Capture 1 :** la sortie de `wsl -l -v` montrant Ubuntu en version 2.
 
 ---
 
-## Étape 2 — 🧑‍💻 Installer VirtualBox + Vagrant
+## Étape 2 — ‍ Installer VirtualBox + Vagrant
 
 Dans **PowerShell administrateur** :
 
@@ -75,11 +75,11 @@ VBoxManage --version
 vagrant --version
 ```
 
-📸 **Capture 2 :** les versions de VirtualBox et Vagrant affichées.
+ **Capture 2 :** les versions de VirtualBox et Vagrant affichées.
 
 ---
 
-## Étape 3 — 🧑‍💻 Préparer WSL2 (Ansible + Vagrant → VirtualBox Windows)
+## Étape 3 — ‍ Préparer WSL2 (Ansible + Vagrant  VirtualBox Windows)
 
 Ouvre **Ubuntu (WSL)** et exécute :
 
@@ -94,7 +94,7 @@ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://
 sudo apt update && sudo apt install -y vagrant
 ```
 
-Puis on connecte **Vagrant (WSL) → VirtualBox (Windows)**. Ajoute ces lignes à la fin de `~/.bashrc` :
+Puis on connecte **Vagrant (WSL)  VirtualBox (Windows)**. Ajoute ces lignes à la fin de `~/.bashrc` :
 
 ```bash
 echo 'export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS="1"' >> ~/.bashrc
@@ -108,11 +108,11 @@ Vérifie que WSL voit bien VirtualBox de Windows :
 VBoxManage.exe --version
 ```
 
-📸 **Capture 3 :** `VBoxManage.exe --version` qui répond **depuis WSL** (preuve que le pont WSL↔VirtualBox marche).
+ **Capture 3 :** `VBoxManage.exe --version` qui répond **depuis WSL** (preuve que le pont WSLVirtualBox marche).
 
 ---
 
-## Étape 4 — 🧑‍💻 Déployer GOAD-Light
+## Étape 4 — ‍ Déployer GOAD-Light
 
 Toujours dans **Ubuntu (WSL)** :
 
@@ -144,23 +144,23 @@ Si le `goad.sh` interactif pose souci, l'équivalent en une commande :
 ./goad.sh -t install -l GOAD-Light -p virtualbox
 ```
 
-📸 **Capture 4 :** le message de fin de déploiement GOAD ("recap" en vert / "Successfully").
-📸 **Capture 5 :** l'interface **VirtualBox** montrant les 2 VM GOAD-Light démarrées (ex. `GOAD-Light-DC01`, `GOAD-Light-SRV02`).
+ **Capture 4 :** le message de fin de déploiement GOAD ("recap" en vert / "Successfully").
+ **Capture 5 :** l'interface **VirtualBox** montrant les 2 VM GOAD-Light démarrées (ex. `GOAD-Light-DC01`, `GOAD-Light-SRV02`).
 
 ---
 
-## Étape 5 — 🧑‍💻 Ajouter la VM attaquant (Kali)
+## Étape 5 — ‍ Ajouter la VM attaquant (Kali)
 
 1. Télécharge l'image **Kali pour VirtualBox** : https://www.kali.org/get-kali/#kali-virtual-machines (format `.7z` VirtualBox).
-2. Décompresse, puis dans VirtualBox : *Fichier → Importer un appareil virtuel* (ou double-clic sur le `.vbox`).
+2. Décompresse, puis dans VirtualBox : *Fichier  Importer un appareil virtuel* (ou double-clic sur le `.vbox`).
 3. **Réseau :** mets la carte réseau de Kali sur le **même réseau interne/hôte** que les VM GOAD (souvent `VirtualBox Host-Only Network` ou le réseau `192.168.56.0/24` de GOAD). Objectif : Kali doit **pinguer le DC**.
 4. Démarre Kali (login par défaut : `kali` / `kali`).
 
-📸 **Capture 6 :** Kali démarré, avec un `ip a` montrant son adresse dans le réseau du lab.
+ **Capture 6 :** Kali démarré, avec un `ip a` montrant son adresse dans le réseau du lab.
 
 ---
 
-## Étape 6 — 🧑‍💻 Vérifier que le lab fonctionne
+## Étape 6 — ‍ Vérifier que le lab fonctionne
 
 Le test de validation : depuis **Kali**, prouver qu'on parle bien à l'AD.
 
@@ -178,27 +178,27 @@ nxc smb 192.168.56.11 -u <user> -p <password> --users
 
 > Les identifiants et IP exacts sont donnés par GOAD à la fin de l'install (fichier `GOAD/ad/GOAD-Light/data/` et la doc GOAD).
 
-📸 **Capture 7 :** la sortie de `nxc smb` affichant le nom du domaine et la version Windows du DC (preuve que le lab répond).
-📸 **Capture 8 :** la liste des utilisateurs du domaine énumérés (`--users`).
+ **Capture 7 :** la sortie de `nxc smb` affichant le nom du domaine et la version Windows du DC (preuve que le lab répond).
+ **Capture 8 :** la liste des utilisateurs du domaine énumérés (`--users`).
 
 ---
 
-## ✅ Fin de la Phase 2
+##  Fin de la Phase 2
 
 À ce stade tu as :
 - Un **AD vulnérable** (GOAD-Light) qui tourne.
 - Une **machine attaquant** (Kali) connectée au même réseau.
 - La **preuve** que Kali communique avec le DC.
 
-➡️ **Phase 3 :** installer **Sysmon + Winlogbeat** sur les VM Windows et brancher **Elastic**, pour capturer les logs quand on attaquera.
+ **Phase 3 :** installer **Sysmon + Winlogbeat** sur les VM Windows et brancher **Elastic**, pour capturer les logs quand on attaquera.
 
 ---
 
-## 📸 Récap des captures à mettre sur GitHub
+##  Récap des captures à mettre sur GitHub
 
 | # | Capture | Étape |
 |---|---------|-------|
-| 1 | `wsl -l -v` → Ubuntu v2 | 1 |
+| 1 | `wsl -l -v`  Ubuntu v2 | 1 |
 | 2 | Versions VirtualBox + Vagrant | 2 |
 | 3 | `VBoxManage.exe --version` depuis WSL | 3 |
 | 4 | Fin de déploiement GOAD (succès) | 4 |
@@ -207,4 +207,4 @@ nxc smb 192.168.56.11 -u <user> -p <password> --users
 | 7 | `nxc smb` sur le DC (domaine + OS) | 6 |
 | 8 | Liste des utilisateurs du domaine | 6 |
 
-> 💡 Range ces captures dans un dossier `simulation/screenshots/` du repo et référence-les ici.
+>  Range ces captures dans un dossier `simulation/screenshots/` du repo et référence-les ici.

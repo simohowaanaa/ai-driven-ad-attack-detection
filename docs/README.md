@@ -33,7 +33,7 @@ Chaque fiche suit le même format :
 
 ## Catalogue des 48 attaques
 
-### 🔍 Reconnaissance — *L'attaquant cartographie l'environnement*
+###  Reconnaissance — *L'attaquant cartographie l'environnement*
 
 > Avant d'attaquer, l'attaquant cherche à comprendre la structure du domaine : quels comptes existent, quels services tournent, quelles machines sont accessibles. Ces attaques sont souvent silencieuses car elles n'exploitent aucune vulnérabilité — elles utilisent des fonctionnalités légitimes d'AD.
 
@@ -46,7 +46,7 @@ Chaque fiche suit le même format :
 
 ---
 
-### 🔑 Credential Access — *L'attaquant vole des mots de passe ou des hashs*
+###  Credential Access — *L'attaquant vole des mots de passe ou des hashs*
 
 > L'objectif ici est d'obtenir des identifiants valides — soit en clair, soit sous forme de hash. Avec un hash, l'attaquant peut souvent s'authentifier directement sans connaître le mot de passe (Pass-the-Hash). Ces attaques sont parmi les plus critiques car elles donnent accès à de nouveaux comptes.
 
@@ -67,7 +67,7 @@ Chaque fiche suit le même format :
 
 ---
 
-### ↔️ Lateral Movement — *L'attaquant se déplace d'une machine à l'autre*
+###  Lateral Movement — *L'attaquant se déplace d'une machine à l'autre*
 
 > Une fois un premier compte compromis, l'attaquant l'utilise pour accéder à d'autres machines du réseau. L'objectif est de progresser vers les systèmes les plus critiques (serveurs, DC).
 
@@ -81,7 +81,7 @@ Chaque fiche suit le même format :
 
 ---
 
-### ⬆️ Privilege Escalation — *L'attaquant devient administrateur du domaine*
+### ⬆ Privilege Escalation — *L'attaquant devient administrateur du domaine*
 
 > L'objectif final de presque toutes les intrusions AD : obtenir les droits Domain Admin ou Enterprise Admin, ce qui donne un contrôle total sur l'ensemble du parc. Ces attaques exploitent des failles dans Kerberos, les services de certificats (ADCS) ou des mauvaises configurations.
 
@@ -104,7 +104,7 @@ Chaque fiche suit le même format :
 
 ---
 
-### 🔒 Persistence — *L'attaquant s'assure de rester dans le réseau*
+###  Persistence — *L'attaquant s'assure de rester dans le réseau*
 
 > Après avoir pris le contrôle, l'attaquant installe des mécanismes de persistance pour rester présent même si son accès initial est révoqué — parfois pendant des mois ou des années.
 
@@ -120,7 +120,7 @@ Chaque fiche suit le même format :
 
 ---
 
-### 🥷 Defense Evasion — *L'attaquant efface ses traces et contourne les défenses*
+###  Defense Evasion — *L'attaquant efface ses traces et contourne les défenses*
 
 | # | Attaque | MITRE |
 |:-:|---------|-------|
@@ -131,7 +131,7 @@ Chaque fiche suit le même format :
 
 ---
 
-### 🌐 Domain Trusts — *L'attaquant pivote d'un domaine à un autre*
+###  Domain Trusts — *L'attaquant pivote d'un domaine à un autre*
 
 > Dans une forêt Active Directory avec plusieurs domaines, un attaquant qui contrôle un domaine enfant peut tenter de compromettre le domaine parent — et ainsi toute la forêt.
 

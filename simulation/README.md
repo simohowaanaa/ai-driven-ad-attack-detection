@@ -10,7 +10,7 @@ Les Phases 2, 3 et 4 forment une séquence ininterrompue :
 
 ```
 Phase 2                   Phase 3                     Phase 4
-Construire le lab    →    Brancher le SIEM        →    Rejouer les attaques
+Construire le lab        Brancher le SIEM            Rejouer les attaques
 (01-deploiement)          (02-siem-wazuh)               (03-attaques + attaques/)
 
 Sans lab,                 Sans SIEM,                   Sans les deux,
@@ -64,22 +64,22 @@ Les résultats de Phase 4 (ce que Wazuh voit ou ne voit pas) sont exactement ce 
 
 | # | Attaque | Résultat Phase 4 | Suite |
 |:-:|---------|:----------------:|-------|
-| 01 | [Kerberoasting](attaques/01-kerberoasting.md) | 🟡 Partiel | Règle 100011 (Phase 5) |
-| 02 | [AS-REP Roasting](attaques/02-asrep-roasting.md) | 🔴 Invisible | Règle 100014 (Phase 5) |
-| 03 | [Énumération LDAP](attaques/03-enumeration.md) | 🔴 Invisible | Agent IA (Phase 6) |
-| 04 | [LLMNR Poisoning](attaques/04-llmnr-poisoning.md) | 🔴 Invisible | Non couvrable (attaque réseau) |
-| 05 | [Password Spraying](attaques/05-password-spraying.md) | ✅ Détecté | — |
-| 06 | [DCSync](attaques/06-dcsync.md) | 🔴 Invisible | Règle 100010 (Phase 5) |
-| 07 | [Abus d'ACL](attaques/07-acl-abuse.md) | ✅ Détecté | — |
-| 08 | [ADCS ESC1](attaques/08-adcs-esc1.md) | 🔴 Invisible | Règle 100012 (Phase 5) |
-| 09 | [Pass-the-Hash](attaques/09-pass-the-hash.md) | 🟡 Partiel | Règle 100017 + Agent IA (Phase 6) |
-| 10 | [MSSQL RCE](attaques/10-mssql-rce.md) | 🔴 Invisible | Règle 100013 (Phase 5) |
-| 11 | [Golden Ticket](attaques/11-golden-ticket.md) | 🟡 Partiel | Agent IA (Phase 6) |
-| 12 | [Trust inter-domaine](attaques/12-trust-inter-domaine.md) | 🟡 Partiel | Règle 100019 (Phase 5) |
+| 01 | [Kerberoasting](attaques/01-kerberoasting.md) |  Partiel | Règle 100011 (Phase 5) |
+| 02 | [AS-REP Roasting](attaques/02-asrep-roasting.md) |  Invisible | Règle 100014 (Phase 5) |
+| 03 | [Énumération LDAP](attaques/03-enumeration.md) |  Invisible | Agent IA (Phase 6) |
+| 04 | [LLMNR Poisoning](attaques/04-llmnr-poisoning.md) |  Invisible | Non couvrable (attaque réseau) |
+| 05 | [Password Spraying](attaques/05-password-spraying.md) |  Détecté | — |
+| 06 | [DCSync](attaques/06-dcsync.md) |  Invisible | Règle 100010 (Phase 5) |
+| 07 | [Abus d'ACL](attaques/07-acl-abuse.md) |  Détecté | — |
+| 08 | [ADCS ESC1](attaques/08-adcs-esc1.md) |  Invisible | Règle 100012 (Phase 5) |
+| 09 | [Pass-the-Hash](attaques/09-pass-the-hash.md) |  Partiel | Règle 100017 + Agent IA (Phase 6) |
+| 10 | [MSSQL RCE](attaques/10-mssql-rce.md) |  Invisible | Règle 100013 (Phase 5) |
+| 11 | [Golden Ticket](attaques/11-golden-ticket.md) |  Partiel | Agent IA (Phase 6) |
+| 12 | [Trust inter-domaine](attaques/12-trust-inter-domaine.md) |  Partiel | Règle 100019 (Phase 5) |
 
 **Conclusion :** sur 12 attaques, seulement 2 sont clairement détectées par Wazuh par défaut. C'est le constat qui justifie les Phases 5 et 6.
 
-→ [Voir les règles custom et l'agent IA](../detection/)
+ [Voir les règles custom et l'agent IA](../detection/)
 
 ---
 
@@ -93,4 +93,4 @@ Les résultats de Phase 4 (ce que Wazuh voit ou ne voit pas) sont exactement ce 
 
 ---
 
-> ⚠️ **Rappel éthique :** ce lab est **isolé**. Les attaques ne se pratiquent QUE dans cet environnement, jamais sur un réseau réel.
+>  **Rappel éthique :** ce lab est **isolé**. Les attaques ne se pratiquent QUE dans cet environnement, jamais sur un réseau réel.
