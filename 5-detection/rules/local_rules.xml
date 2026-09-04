@@ -1,0 +1,138 @@
+<!--
+  Wazuh Custom Rules — Active Directory Attack Detection
+  Phase 5 — Dataprotect SOC Project
+  File: /var/ossec/etc/rules/local_rules.xml
+
+  7 rules validated in live conditions on GOAD-Light lab.
+  Prerequisites: audit policies must be enabled on domain controllers (see 3-siem/setup/).
+-->
+
+<group name="ad_attacks,">
+
+  <!-- ─── RULE 100010 : DCSync ──────────────────────────────────────────── -->
+  <!--
+    Detects replication requests from non-machine accounts.
+    Event 4662 is generated when an AD object operation is performed.
+    The GUID {1131f6aa-9c07-11d1-f79f-00c04fc2dcd2} identifies DS-Replication-Get-Changes.
+    A regular user account performing this is DCSync.
+  -->
+  <rule id="100010" level="12">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4662$</field>
+    <field name="win.eventdata.properties" type="pcre2">1131f6aa-9c07-11d1-f79f-00c04fc2dcd2</field>
+    <field name="win.eventdata.subjectUserName" type="pcre2">(?i)^(?!.*\$$).*</field>
+    <description>Possible DCSync attack: AD replication requested by non-machine account $(win.eventdata.subjectUserName)</description>
+    <mitre>
+      <id>T1003.006</id>
+    </mitre>
+    <group>dcsync,credential_access,</group>
+  </rule>
+
+  <!-- ─── RULE 100011 : Kerberoasting ──────────────────────────────────── -->
+  <!--
+    Detects RC4 (0x17) Kerberos TGS requests in volume.
+    Modern services use AES encryption. Multiple RC4 TGS requests indicate
+    an attacker collecting tickets to crack offline (Kerberoasting).
+  -->
+  <rule id="100011" level="10" frequency="3" timeframe="60">
+    <if_matched_sid>60103</if_matched_sid>
+    <field name="win.system.eventID">^4769$</field>
+    <field name="win.eventdata.ticketEncryptionType">^0x17$</field>
+    <field name="win.eventdata.ticketOptions">^0x40810000$</field>
+    <description>Possible Kerberoasting: multiple RC4 TGS requests from $(win.eventdata.clientAddress)</description>
+    <mitre>
+      <id>T1558.003</id>
+    </mitre>
+    <group>kerberoasting,credential_access,</group>
+  </rule>
+
+  <!-- ─── RULE 100012 : ADCS ESC1 ──────────────────────────────────────── -->
+  <!--
+    Detects certificate issuance (Event 4887) where the SubjectAltName
+    differs from the requester identity — signature of ESC1 exploitation.
+    Requires ADCS audit to be enabled on the CA server.
+  -->
+  <rule id="100012" level="12">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4887$</field>
+    <field name="win.eventdata.subjectAltName" type="pcre2">.+</field>
+    <description>Possible ADCS ESC1: certificate issued with SubjectAltName by $(win.eventdata.requester) — may impersonate another account</description>
+    <mitre>
+      <id>T1649</id>
+    </mitre>
+    <group>adcs,privilege_escalation,</group>
+  </rule>
+
+  <!-- ─── RULE 100013 : MSSQL RCE via xp_cmdshell ─────────────────────── -->
+  <!--
+    Detects cmd.exe spawned by sqlservr.exe (SQL Server process).
+    SQL Server should never open a command shell under normal conditions.
+    This pattern is the exact signature of xp_cmdshell execution.
+    Requires Process Creation audit with command line enabled.
+  -->
+  <rule id="100013" level="12">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4688$</field>
+    <field name="win.eventdata.newProcessName" type="pcre2">(?i)cmd\.exe$</field>
+    <field name="win.eventdata.parentProcessName" type="pcre2">(?i)sqlservr\.exe$</field>
+    <description>Possible MSSQL RCE via xp_cmdshell: cmd.exe spawned by SQL Server on $(win.eventdata.computerName)</description>
+    <mitre>
+      <id>T1210</id>
+      <id>T1059.003</id>
+    </mitre>
+    <group>mssql_rce,execution,</group>
+  </rule>
+
+  <!-- ─── RULE 100014 : AS-REP Roasting ───────────────────────────────── -->
+  <!--
+    Detects Kerberos AS requests (Event 4768) where pre-authentication
+    is not required (PreAuthType = 0). This condition allows requesting
+    an AS-REP ticket without valid credentials — crackable offline.
+  -->
+  <rule id="100014" level="10">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4768$</field>
+    <field name="win.eventdata.preAuthType">^0$</field>
+    <description>Possible AS-REP Roasting: account $(win.eventdata.targetUserName) has pre-authentication disabled</description>
+    <mitre>
+      <id>T1558.004</id>
+    </mitre>
+    <group>asrep_roasting,credential_access,</group>
+  </rule>
+
+  <!-- ─── RULE 100017 : Pass-the-Hash ─────────────────────────────────── -->
+  <!--
+    Detects network logons (Type 3) using NTLM authentication package.
+    NTLM network logons to a domain controller are rare in Kerberos environments.
+    This pattern indicates hash reuse (Pass-the-Hash).
+  -->
+  <rule id="100017" level="10">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4624$</field>
+    <field name="win.eventdata.logonType">^3$</field>
+    <field name="win.eventdata.authenticationPackageName">^NTLM$</field>
+    <description>Possible Pass-the-Hash: NTLM network logon (Type 3) by $(win.eventdata.targetUserName) from $(win.eventdata.ipAddress)</description>
+    <mitre>
+      <id>T1550.002</id>
+    </mitre>
+    <group>pass_the_hash,lateral_movement,</group>
+  </rule>
+
+  <!-- ─── RULE 100019 : Cross-Domain Trust Abuse ───────────────────────── -->
+  <!--
+    Chained on rule 100017 (Pass-the-Hash base).
+    Detects NTLM authentication crossing domain boundaries
+    from NORTH to SEVENKINGDOMS — signature of SID History / trust abuse.
+  -->
+  <rule id="100019" level="12">
+    <if_sid>100017</if_sid>
+    <field name="win.eventdata.targetDomainName" type="pcre2">(?i)NORTH</field>
+    <description>Possible Trust Abuse: cross-domain NTLM logon NORTH to SEVENKINGDOMS by $(win.eventdata.targetUserName)</description>
+    <mitre>
+      <id>T1482</id>
+      <id>T1134.005</id>
+    </mitre>
+    <group>trust_abuse,domain_trusts,</group>
+  </rule>
+
+</group>
