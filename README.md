@@ -1,6 +1,8 @@
 # Active Directory Attack Detection — Wazuh + Isolation Forest
 
-**Internship project — Dataprotect SOC — Juillet–Août 2026**
+**Projet de stage — SOC Dataprotect — Juillet–Août 2026**
+**Auteurs :** Maimouni Mohammed & Chafak Othmane
+**Encadrant entreprise :** Benkirane Abbes · **Encadrant école :** Bakkaliyeddi Othman
 
 ![Phase 1](https://img.shields.io/badge/Phase%201%20Documentation-done-22c55e?style=flat-square)
 ![Phase 2](https://img.shields.io/badge/Phase%202%20Lab-done-22c55e?style=flat-square)
@@ -11,164 +13,137 @@
 
 ---
 
-## What this project does
+## En deux phrases
 
-This project builds a complete Active Directory attack detection pipeline — from theoretical documentation to a live AI anomaly detection agent — covering all steps in between: a vulnerable AD lab, a SIEM with custom rules, and 12 real attacks simulated end to end.
+Ce projet répond à une question concrète posée par le SOC de Dataprotect :
+**un SIEM Wazuh installé par défaut peut-il détecter les attaques Active Directory avancées — et sinon, comment combler les angles morts ?**
 
-The central question: **how far can Wazuh detect AD attacks out of the box, and how do we cover the blind spots?**
-
-The answer comes in two layers:
-- **Custom Wazuh rules** (Phase 5) — for attacks that have a known signature in Windows Event Logs
-- **Isolation Forest AI agent** (Phase 6) — for attacks that are cryptographically valid and leave no detectable signature (Golden Ticket)
-
-**Authors:** Maimouni Mohammed & Chafak Othmane
-**Supervisor (Dataprotect):** Benkirane Abbes
-**Academic supervisor (EMSI):** Bakkaliyedri Othman
+La réponse : non, Wazuh par défaut ne détecte que **2 attaques sur 12**. Ce projet monte ce score à **9/12 par des règles custom**, puis couvre le reste par un **agent IA (Isolation Forest)** capable de détecter le Golden Ticket — une attaque indétectable par toute règle de signature.
 
 ---
 
-## Repository structure
+## Lire ce dépôt
+
+Le projet se déroule en 6 phases. Chaque dossier correspond à une phase. Lisez dans l'ordre si vous découvrez le projet, ou allez directement à la phase qui vous intéresse.
+
+| Dossier | Phase | Contenu | Lire si vous voulez... |
+|---------|-------|---------|----------------------|
+| [1-documentation/](1-documentation/) | Phase 1 | 48 fiches d'attaques AD (MITRE ATT&CK) | Comprendre les techniques avant de les voir en action |
+| [2-lab/](2-lab/) | Phase 2 | Déploiement GOAD-Light sur Azure | Reproduire le lab ou comprendre l'infrastructure |
+| [3-siem/](3-siem/) | Phase 3 | Installation Wazuh + configuration des audits | Brancher un SIEM sur un lab AD |
+| [4-attacks/](4-attacks/) | Phase 4 | 12 playbooks d'attaque + résultats Wazuh | Voir ce que Wazuh détecte (ou rate) pour chaque attaque |
+| [5-detection/](5-detection/) | Phase 5 | 7 règles Wazuh custom validées en live | Déployer les règles ou comprendre comment elles fonctionnent |
+| [6-ai-agent/](6-ai-agent/) | Phase 6 | Agent Isolation Forest + script Python | Comprendre ou relancer l'agent de détection comportementale |
+| [reports/](reports/) | — | Rapport de stage officiel | Lire le rapport complet |
+
+---
+
+## Résultats en un coup d'oeil
+
+### Détection par attaque
+
+| # | Attaque | MITRE | Wazuh défaut | Après règles (Phase 5) | Agent IA (Phase 6) |
+|:-:|---------|-------|:------------:|:----------------------:|:-----------------:|
+| 01 | [Kerberoasting](4-attacks/playbooks/01-kerberoasting.md) | T1558.003 | Partiel | Détecté (règle 100011) | — |
+| 02 | [AS-REP Roasting](4-attacks/playbooks/02-asrep-roasting.md) | T1558.004 | Invisible | Détecté (règle 100014) | — |
+| 03 | [Énumération LDAP](4-attacks/playbooks/03-enumeration.md) | T1087 | Invisible | Invisible (structurel) | — |
+| 04 | [LLMNR Poisoning](4-attacks/playbooks/04-llmnr-poisoning.md) | T1557.001 | Invisible | Invisible (réseau) | — |
+| 05 | [Password Spraying](4-attacks/playbooks/05-password-spraying.md) | T1110.003 | Détecté | Détecté | — |
+| 06 | [DCSync](4-attacks/playbooks/06-dcsync.md) | T1003.006 | Invisible | Détecté (règle 100010) | — |
+| 07 | [Abus d'ACL](4-attacks/playbooks/07-acl-abuse.md) | T1222 | Détecté | Détecté | — |
+| 08 | [ADCS ESC1](4-attacks/playbooks/08-adcs-esc1.md) | T1649 | Invisible | Détecté (règle 100012) | — |
+| 09 | [Pass-the-Hash](4-attacks/playbooks/09-pass-the-hash.md) | T1550.002 | Partiel | Détecté (règle 100017) | — |
+| 10 | [MSSQL RCE](4-attacks/playbooks/10-mssql-rce.md) | T1210 | Invisible | Détecté (règle 100013) | — |
+| 11 | [Golden Ticket](4-attacks/playbooks/11-golden-ticket.md) | T1558.001 | Partiel | Impossible (pas de signature) | **Détecté** |
+| 12 | [Trust inter-domaine](4-attacks/playbooks/12-trust-inter-domaine.md) | T1482 | Partiel | Détecté (règle 100019) | — |
+
+**Score Wazuh par défaut : 2/12 — Après Phase 5 : 9/12 — Golden Ticket couvert par l'IA**
+
+### Règles Wazuh custom
+
+| Règle | Attaque ciblée | Event Windows | Résultat live |
+|:-----:|----------------|:-------------:|--------------|
+| [100010](5-detection/rules/local_rules.xml) | DCSync | 4662 | 3 hits — tywin.lannister identifié |
+| [100011](5-detection/rules/local_rules.xml) | Kerberoasting | 4769 + RC4 | 3 hits — rafale RC4 détectée |
+| [100012](5-detection/rules/local_rules.xml) | ADCS ESC1 | 4887 | 2 hits — certificat Administrator |
+| [100013](5-detection/rules/local_rules.xml) | MSSQL RCE | 4688 | 7 hits — cmd.exe issu de sqlservr.exe |
+| [100014](5-detection/rules/local_rules.xml) | AS-REP Roasting | 4768 | 1 hit — compte sans pré-authentification |
+| [100017](5-detection/rules/local_rules.xml) | Pass-the-Hash | 4624 + NTLM | 5 hits — logon NTLM réseau |
+| [100019](5-detection/rules/local_rules.xml) | Trust Abuse | 4624 cross-domain | 18 hits — NORTH vers SEVENKINGDOMS |
+
+### Agent IA — Top anomalies (23 comptes, 18 août 2026)
+
+| Compte | Score | Signal détecté | Interprétation |
+|--------|:-----:|----------------|----------------|
+| robb.stark | -0.170 | 1 461 événements/24h | Bot RDP automatisé |
+| eddard.stark | -0.086 | 17 logons NTLM | Pass-the-Hash |
+| robb.stark@NORTH | -0.083 | **610 TGS sans aucun TGT** | **Golden Ticket** |
+| sql_svc | -0.022 | Alertes xp_cmdshell | MSSQL RCE |
+
+Le compte `robb.stark@NORTH` a effectué 610 demandes de tickets TGS sans jamais avoir demandé un TGT. C'est physiquement impossible dans un flux Kerberos légitime — c'est la signature comportementale exclusive d'un Golden Ticket forgé hors ligne.
+
+---
+
+## Architecture du lab
 
 ```
-ai-driven-ad-attack-detection/
-|
-+-- 1-documentation/     Phase 1 — 48 AD attack technique files (MITRE ATT&CK)
-+-- 2-lab/               Phase 2 — GOAD-Light lab deployment on Azure
-+-- 3-siem/              Phase 3 — Wazuh SIEM installation and configuration
-+-- 4-attacks/           Phase 4 — 12 attack playbooks + detection results
-+-- 5-detection/         Phase 5 — 7 custom Wazuh rules (XML + documentation)
-+-- 6-ai-agent/          Phase 6 — Isolation Forest anomaly detection agent
-+-- reports/             Official internship reports
+  VM Azure Linux — Ubuntu 24.04 — Standard_E4s_v3 — 4 vCPU / 32 Go RAM
+  +-------------------------------------------------------------------+
+  |                         VirtualBox                                 |
+  |                                                                    |
+  |  +--------------+   +--------------+   +----------------------+   |
+  |  |     DC01     |   |     DC02     |   |        SRV02         |   |
+  |  | kingslanding |   |  winterfell  |   |     castelblack      |   |
+  |  | .10          |   | .11          |   | .22 — SQL Server     |   |
+  |  | sevenkingdoms|   | north.seven..|   | north.sevenkingdoms  |   |
+  |  +------+-------+   +------+-------+   +-----------+----------+   |
+  |         | agent Wazuh     | agent Wazuh            | agent Wazuh  |
+  |         +------------------+-----------------------+              |
+  |                     +------+------+                               |
+  |                     | Wazuh SIEM  | .51                           |
+  |                     +-------------+                               |
+  |              Réseau isolé — 192.168.56.0/24                      |
+  +-------------------------------------------------------------------+
+              Accès SSH + tunnel depuis le poste local
 ```
 
-Each folder has its own README explaining what it contains and how to use it.
+Les deux domaines (`sevenkingdoms.local` et `north.sevenkingdoms.local`) sont reliés par un trust parent-enfant pour simuler les attaques inter-domaines.
 
 ---
 
-## Lab overview
+## Démarrage rapide
 
-The lab is a deliberately vulnerable Active Directory environment (GOAD-Light by Orange Cyberdefense), deployed on a Linux Azure VM with nested virtualization.
+**Je veux reproduire le lab :**
+1. Lire [2-lab/setup/01-azure-vm.md](2-lab/setup/01-azure-vm.md)
+2. Lancer [2-lab/setup/azure-goad-setup.sh](2-lab/setup/azure-goad-setup.sh)
+3. Suivre [3-siem/setup/01-wazuh-server.md](3-siem/setup/01-wazuh-server.md)
 
-| Machine | IP | Role | Domain |
-|---------|----|------|--------|
-| kingslanding (DC01) | 192.168.56.10 | Root domain controller, ADCS CA | sevenkingdoms.local |
-| winterfell (DC02) | 192.168.56.11 | Child domain controller | north.sevenkingdoms.local |
-| castelblack (SRV02) | 192.168.56.22 | Member server, SQL Server 2019 | north.sevenkingdoms.local |
-| Wazuh | 192.168.56.51 | SIEM — indexer, manager, dashboard | — |
+**Je veux déployer les règles de détection :**
+1. Copier [5-detection/rules/local_rules.xml](5-detection/rules/local_rules.xml) dans `/var/ossec/etc/rules/`
+2. Relancer le manager : `systemctl restart wazuh-manager`
 
-The two domains are linked by a parent-child trust to enable cross-domain attack simulation.
-
----
-
-## Phase 1 — Attack documentation
-
-48 technique files covering the main Active Directory attack categories, organized by MITRE ATT&CK tactic. Each file contains the attack description, prerequisites, Windows Event IDs generated, a Sigma detection rule, and remediation steps.
-
-| Tactic | Techniques |
-|--------|-----------|
-| Reconnaissance | 4 |
-| Credential Access | 12 |
-| Lateral Movement | 5 |
-| Privilege Escalation | 14 |
-| Persistence | 7 |
-| Defense Evasion | 4 |
-| Domain Trusts | 2 |
-
-See [1-documentation/README.md](1-documentation/README.md)
+**Je veux lancer l'agent IA :**
+```bash
+cd 6-ai-agent/
+pip install -r requirements.txt
+python anomaly_detection.py /chemin/vers/alertes_wazuh.json
+```
 
 ---
 
-## Phase 2 — Lab deployment
+## Stack technique
 
-GOAD-Light deployed on Azure (Ubuntu 24.04 — Standard_E4s_v3 — 4 vCPU / 32 GB RAM) using VirtualBox, Vagrant, and Ansible. Nested virtualization was required to run VirtualBox inside the Azure Linux VM.
-
-See [2-lab/README.md](2-lab/README.md) — [Setup guide](2-lab/setup/01-azure-vm.md) — [Automated script](2-lab/setup/azure-goad-setup.sh)
-
----
-
-## Phase 3 — Wazuh SIEM
-
-Wazuh deployed on a fourth VM (192.168.56.51) with agents on all three Windows machines. Missing Windows audit categories were enabled via Group Policy on both domain controllers.
-
-See [3-siem/README.md](3-siem/README.md)
+| Couche | Technologie |
+|--------|------------|
+| Lab AD vulnérable | GOAD-Light — VirtualBox, Vagrant, Ansible |
+| Infrastructure | Microsoft Azure — VM Linux, virtualisation imbriquée |
+| SIEM | Wazuh — indexer (OpenSearch), manager, dashboard, agents Windows |
+| Outils offensifs | impacket, Certipy, bloodhound-python, evil-winrm, kerbrute, Responder |
+| Agent IA | Python 3 — scikit-learn, pandas, numpy |
+| Référentiel | MITRE ATT&CK Enterprise |
 
 ---
 
-## Phase 4 — Attack simulation
+## Cadre éthique
 
-12 attacks replayed in live conditions. Each attack is documented with the exact commands, the result obtained, and what Wazuh saw (or did not see).
-
-| # | Attack | MITRE | Default Wazuh | After Phase 5 | Phase 6 AI |
-|:-:|--------|-------|:-------------:|:-------------:|:----------:|
-| 01 | Kerberoasting | T1558.003 | Partial | Detected | — |
-| 02 | AS-REP Roasting | T1558.004 | Blind | Detected | — |
-| 03 | LDAP Enumeration | T1087 | Blind | Blind | — |
-| 04 | LLMNR Poisoning | T1557.001 | Blind | Blind | — |
-| 05 | Password Spraying | T1110.003 | Detected | Detected | — |
-| 06 | DCSync | T1003.006 | Blind | Detected | — |
-| 07 | ACL Abuse | T1222 | Detected | Detected | — |
-| 08 | ADCS ESC1 | T1649 | Blind | Detected | — |
-| 09 | Pass-the-Hash | T1550.002 | Partial | Detected | — |
-| 10 | MSSQL RCE | T1210 | Blind | Detected | — |
-| 11 | Golden Ticket | T1558.001 | Partial | Blind | Detected |
-| 12 | Trust Abuse | T1482 | Partial | Detected | — |
-
-Default score: 2/12 — After Phase 5: 9/12 — After Phase 6: Golden Ticket covered
-
-See [4-attacks/README.md](4-attacks/README.md)
-
----
-
-## Phase 5 — Custom Wazuh rules
-
-7 rules written in XML and deployed in `/var/ossec/etc/rules/local_rules.xml`. All validated by replaying the attacks after deployment.
-
-| Rule | Attack | Event | Live result |
-|:----:|--------|:-----:|------------|
-| 100010 | DCSync | 4662 | 3 hits — tywin.lannister |
-| 100011 | Kerberoasting | 4769 + RC4 | 3 hits — RC4 burst |
-| 100012 | ADCS ESC1 | 4887 | 2 hits — Administrator certificate |
-| 100013 | MSSQL RCE | 4688 | 7 hits — cmd.exe from sqlservr.exe |
-| 100014 | AS-REP Roasting | 4768 | 1 hit — no pre-authentication |
-| 100017 | Pass-the-Hash | 4624 + NTLM | 5 hits — NTLM network logon |
-| 100019 | Trust Abuse | 4624 cross-domain | 18 hits — NORTH to SEVENKINGDOMS |
-
-See [5-detection/README.md](5-detection/README.md) — [Rules XML](5-detection/rules/local_rules.xml)
-
----
-
-## Phase 6 — AI anomaly detection agent
-
-An Isolation Forest model runs on 24h of Wazuh alerts exported from OpenSearch. It computes 10 behavioral features per account and ranks them by anomaly score.
-
-The key feature is `tgs_without_tgt`: the number of TGS tickets requested without a prior TGT request. In legitimate Kerberos, a client always obtains a TGT first. A Golden Ticket is forged offline and presented directly — so this counter will be high with no TGT in the logs. This is undetectable by any signature rule.
-
-Results (23 accounts — 18 August 2026):
-
-| Account | Score | Signal | Interpretation |
-|---------|:-----:|--------|----------------|
-| robb.stark | -0.170 | 1461 events | Automated RDP bot |
-| eddard.stark | -0.086 | 17 NTLM logons | Pass-the-Hash |
-| robb.stark@NORTH | -0.083 | 610 TGS, 0 TGT | **Golden Ticket** |
-| sql_svc | -0.022 | xp_cmdshell alerts | MSSQL RCE |
-
-See [6-ai-agent/README.md](6-ai-agent/README.md) — [Python script](6-ai-agent/anomaly_detection.py)
-
----
-
-## Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Vulnerable AD lab | GOAD-Light (Orange Cyberdefense) — VirtualBox, Vagrant, Ansible |
-| Cloud infrastructure | Microsoft Azure — Linux VM with nested virtualization |
-| SIEM | Wazuh — indexer (OpenSearch), manager, dashboard, Windows agents |
-| Offensive tools | impacket, Certipy, bloodhound-python, evil-winrm, kerbrute, Responder |
-| AI agent | Python 3 — scikit-learn, pandas, numpy |
-| Reference framework | MITRE ATT&CK Enterprise |
-
----
-
-## Ethical framework
-
-All attacks were performed exclusively in an isolated, intentionally vulnerable environment (GOAD-Light) for defensive research and educational purposes. None of these techniques should be used on a real system without explicit written authorization.
+Toutes les attaques ont été réalisées exclusivement dans un environnement isolé et volontairement vulnérable (GOAD-Light), à des fins de recherche défensive et d'enseignement. Aucune de ces techniques ne doit être utilisée sur un système réel sans autorisation écrite explicite.
