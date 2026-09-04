@@ -1,4 +1,6 @@
-# Active Directory Attack Detection — Wazuh + Isolation Forest
+<p align="center">
+  <img src="assets/banner.svg" alt="Active Directory Attack Detection" width="100%"/>
+</p>
 
 **Projet de stage — SOC Dataprotect — Juillet–Août 2026**
 **Auteurs :** Maimouni Mohammed & Chafak Othmane
@@ -28,6 +30,26 @@ Le projet se déroule en 6 phases. Chaque dossier correspond à une phase. Lisez
 | [5-detection/](5-detection/) | Phase 5 | 7 règles Wazuh custom validées en live | Déployer les règles ou comprendre comment elles fonctionnent |
 | [6-ai-agent/](6-ai-agent/) | Phase 6 | Agent Isolation Forest + script Python | Comprendre ou relancer l'agent de détection comportementale |
 | [reports/](reports/) | — | Rapport de stage officiel | Lire le rapport complet |
+
+---
+
+## Flux du projet
+
+```mermaid
+flowchart LR
+    A[Phase 1\nDocumentation\n48 attaques AD] --> B[Phase 2\nLab GOAD-Light\nAzure + VirtualBox]
+    B --> C[Phase 3\nWazuh SIEM\n3 agents Windows]
+    C --> D[Phase 4\nSimulation\n12 attaques]
+    D --> E[Phase 5\n7 règles custom\n9/12 détectées]
+    E --> F[Phase 6\nAgent IA\nGolden Ticket]
+
+    style A fill:#1f2937,stroke:#374151,color:#e5e7eb
+    style B fill:#1f2937,stroke:#374151,color:#e5e7eb
+    style C fill:#1f2937,stroke:#374151,color:#e5e7eb
+    style D fill:#7c2d12,stroke:#991b1b,color:#fecaca
+    style E fill:#1e3a5f,stroke:#1f6feb,color:#93c5fd
+    style F fill:#14532d,stroke:#16a34a,color:#86efac
+```
 
 ---
 
