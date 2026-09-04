@@ -1,6 +1,7 @@
-<p align="center">
-  <img src="assets/banner.svg" alt="Active Directory Attack Detection" width="100%"/>
-</p>
+<h1 align="center">Active Directory Attack Detection</h1>
+<p align="center">Wazuh SIEM · Règles custom · Agent IA (Isolation Forest)</p>
+
+---
 
 **Projet de stage — SOC Dataprotect — Juillet–Août 2026**
 **Auteurs :** Maimouni Mohammed & Chafak Othmane
