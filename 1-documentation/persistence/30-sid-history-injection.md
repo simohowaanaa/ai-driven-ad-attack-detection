@@ -73,7 +73,7 @@ level: high
 - Alerter sur 4765.
 
 ## 7. Features pour l'agent IA
-- Événement 4765 (rare → forte alerte).
+- Événement 4765 (rare  forte alerte).
 - Présence d'un SID privilégié dans le token d'un compte non membre du groupe (enrichissement).
 - Corrélation avec DCShadow / accès DC récent.
 

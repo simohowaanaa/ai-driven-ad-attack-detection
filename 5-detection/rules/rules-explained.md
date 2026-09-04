@@ -1,20 +1,20 @@
-# 🛡️ Phase 5 — Audits & règles de détection sur-mesure
+#  Phase 5 — Audits & règles de détection sur-mesure
 
 > **But :** combler les angles morts identifiés en Phase 4 en (1) activant les catégories d'audit Windows manquantes sur les DC, puis (2) écrivant des règles Wazuh custom qui transforment ces nouveaux événements en alertes.
 
 ---
 
-## 🧠 Pourquoi cette phase est nécessaire
+##  Pourquoi cette phase est nécessaire
 
-Sur les **12 attaques** simulées en Phase 4, **6 sont restées invisibles** dans Wazuh — non pas parce que le SIEM est mauvais, mais parce que les **catégories d'audit Windows** correspondantes n'étaient pas activées sur les contrôleurs de domaine. Sans audit activé, l'action se produit (ex: DCSync réplique tous les hashs) mais **aucun événement n'est écrit** dans le journal Windows → Wazuh n'a rien à lire.
+Sur les **12 attaques** simulées en Phase 4, **6 sont restées invisibles** dans Wazuh — non pas parce que le SIEM est mauvais, mais parce que les **catégories d'audit Windows** correspondantes n'étaient pas activées sur les contrôleurs de domaine. Sans audit activé, l'action se produit (ex: DCSync réplique tous les hashs) mais **aucun événement n'est écrit** dans le journal Windows  Wazuh n'a rien à lire.
 
 ```
-Action AD  →  Politique d'audit (activée ou non)  →  Windows Event Log  →  Agent Wazuh
-                        ↑
+Action AD    Politique d'audit (activée ou non)    Windows Event Log    Agent Wazuh
+                        
                  C'EST CE QU'ON ACTIVE ICI
 ```
 
-## 🎯 Catégories d'audit à activer
+##  Catégories d'audit à activer
 
 | Catégorie d'audit | Event(s) généré(s) | Comble l'angle mort de |
 |---|---|---|
@@ -37,7 +37,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /
 
 À appliquer sur les **2 DC** : `kingslanding` (192.168.56.10, sevenkingdoms) et `winterfell` (192.168.56.11, north).
 
-## 📋 Plan de la phase
+##  Plan de la phase
 
 1. **Activer les audits** ci-dessus sur les 2 DC.
 2. **Rejouer** 2-3 attaques clés (DCSync, Kerberoasting, ADCS ESC1) pour vérifier que les événements remontent désormais dans Wazuh.
@@ -48,23 +48,23 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /
    - alerte sur les processus enfants de `sqlservr.exe` (MSSQL RCE)
 4. **Documenter** le avant/après détection pour chaque attaque concernée.
 
-## 🚧 État d'avancement
+##  État d'avancement
 
 | Étape | Statut |
 |:-----:|--------|
-| Activation des audits sur `kingslanding` | ✅ Confirmé |
-| Activation des audits sur `winterfell` | ✅ Confirmé |
-| Re-test DCSync avec audit + SACL actifs | ✅ Confirmé |
-| Règle Wazuh custom — DCSync | ✅ **Détecté** |
-| Règle Wazuh custom — Kerberoasting | ✅ **Détecté** |
-| Règle Wazuh custom — ADCS ESC1 | ✅ **Détecté** |
-| Règle Wazuh custom — MSSQL RCE | ✅ **Détecté** |
-| Règle Wazuh custom — AS-REP Roasting | ✅ **Détecté** |
-| LLMNR Poisoning — couverture impossible | 📝 Documenté (attaque réseau) |
+| Activation des audits sur `kingslanding` |  Confirmé |
+| Activation des audits sur `winterfell` |  Confirmé |
+| Re-test DCSync avec audit + SACL actifs |  Confirmé |
+| Règle Wazuh custom — DCSync |  **Détecté** |
+| Règle Wazuh custom — Kerberoasting |  **Détecté** |
+| Règle Wazuh custom — ADCS ESC1 |  **Détecté** |
+| Règle Wazuh custom — MSSQL RCE |  **Détecté** |
+| Règle Wazuh custom — AS-REP Roasting |  **Détecté** |
+| LLMNR Poisoning — couverture impossible |  Documenté (attaque réseau) |
 
 ---
 
-## ✅ Confirmation — `kingslanding` (DC01, sevenkingdoms)
+##  Confirmation — `kingslanding` (DC01, sevenkingdoms)
 
 Les 5 catégories cibles sont actives, vérifiées via `auditpol /get /category:*` exécuté directement sur le DC :
 
@@ -87,7 +87,7 @@ La **SACL DCSync** (`Replicating Directory Changes` / `...All` sur `DC=sevenking
 
 ![dsacls appliqué avec succès sur kingslanding](../simulation/screenshots/phase5/phase5-audit-kingslanding-dsacls.png)
 
-### 🛠️ Méthode qui a fonctionné (note technique)
+###  Méthode qui a fonctionné (note technique)
 
 Sur ce lab, les canaux d'exécution distante habituels (**WinRM/evil-winrm**, **atexec**, **psexec**) échouent silencieusement sur `kingslanding` — les commandes rapportent un succès protocolaire mais **n'ont aucun effet réel** sur la machine (confirmé par un test de preuve : `mkdir` via 3 mécanismes différents, aucun n'a créé le dossier). Cause probable : une protection active côté DC (Defender ou équivalent) neutralisant l'exécution distante non-interactive.
 
@@ -98,9 +98,9 @@ Sur ce lab, les canaux d'exécution distante habituels (**WinRM/evil-winrm**, **
 4. **Exécuter une seule ligne courte** dans la session RDP : `powershell -ep bypass -file C:\Windows\Temp\audit.ps1`
 5. **Récupérer le résultat** via `smbclient.py get` (pas besoin de repasser par RDP)
 
-> 💡 Cette instabilité de l'exécution distante sur `kingslanding` est elle-même une observation intéressante pour le projet : elle illustre qu'un DC durci peut activement gêner les outils d'attaque/administration à distance — un signal potentiellement détectable en soi (Phase 6).
+>  Cette instabilité de l'exécution distante sur `kingslanding` est elle-même une observation intéressante pour le projet : elle illustre qu'un DC durci peut activement gêner les outils d'attaque/administration à distance — un signal potentiellement détectable en soi (Phase 6).
 
-## ✅ Confirmation — `winterfell` (DC02, north)
+##  Confirmation — `winterfell` (DC02, north)
 
 Contrairement à `kingslanding`, **`evil-winrm` fonctionne parfaitement sur `winterfell`** (déjà observé lors de l'attaque [Pass-the-Hash (09)](../simulation/attaques/09-pass-the-hash.md)) — les 5 catégories ont donc été activées directement via WinRM, sans détour :
 
@@ -119,15 +119,15 @@ Detailed Tracking
   Process Creation                        Success
 ```
 
-La SACL DCSync sur `DC=north,DC=sevenkingdoms,DC=local` a également été confirmée posée (`Allow Everyone → Replicating Directory Changes` / `...All` visibles dans la sortie `dsacls`).
+La SACL DCSync sur `DC=north,DC=sevenkingdoms,DC=local` a également été confirmée posée (`Allow Everyone  Replicating Directory Changes` / `...All` visibles dans la sortie `dsacls`).
 
-### 🔒 Découverte additionnelle : RDP explicitement interdit aux Domain Admins sur winterfell
+###  Découverte additionnelle : RDP explicitement interdit aux Domain Admins sur winterfell
 
 Contrairement à `kingslanding`, `winterfell` **refuse le RDP à tout compte membre de `Domain Admins`** (`"user account is not authorized for remote login"`, même après ajout au groupe et reconnexion). C'est une **vraie bonne pratique de durcissement** (protéger les comptes Tier-0 du vol d'identifiants via RDP) — ironiquement, elle a compliqué notre propre administration légitime du lab. Contournée en utilisant `evil-winrm` (qui, lui, fonctionne sur ce DC) plutôt que RDP.
 
-> 🎯 **Bilan Phase 5 (activation) : les 2 DC de la forêt sont désormais entièrement audités** sur les 5 catégories ciblées, comblant la base technique des angles morts identifiés en Phase 4 (DCSync, Kerberoasting, AS-REP, ADCS ESC1, MSSQL RCE).
+>  **Bilan Phase 5 (activation) : les 2 DC de la forêt sont désormais entièrement audités** sur les 5 catégories ciblées, comblant la base technique des angles morts identifiés en Phase 4 (DCSync, Kerberoasting, AS-REP, ADCS ESC1, MSSQL RCE).
 
-## 🎯 Règle custom #1 — DCSync détecté
+##  Règle custom #1 — DCSync détecté
 
 ### Le piège : DACL ≠ SACL
 
@@ -177,20 +177,20 @@ En s'alignant sur la structure des règles Windows par défaut (ex: la règle 60
 ```
 rule.id: 100010
 eventID: 4662
-subjectUserName: tywin.lannister        ← l'attaquant identifié automatiquement
-properties: {1131f6aa-...} {1131f6ad-...}  ← droits de réplication détectés
+subjectUserName: tywin.lannister         l'attaquant identifié automatiquement
+properties: {1131f6aa-...} {1131f6ad-...}   droits de réplication détectés
 objectServer: DS · operationType: Object Access
 ```
 
-**Le DCSync (attaque 06), angle mort critique de la Phase 4, est maintenant détecté.** 🟢
+**Le DCSync (attaque 06), angle mort critique de la Phase 4, est maintenant détecté.** 
 
 ![3 hits confirmés : règle 100010 détecte le DCSync de tywin.lannister](../simulation/screenshots/phase5/phase5-dcsync-rule-detected.png)
 
-> 💡 **Piste d'amélioration :** la règle actuelle matche tout event 4662, y compris la réplication légitime entre DC. Pour affiner (moins de bruit, spécifique à un abus), ajouter un filtre sur `win.eventdata.properties` contenant les GUID de réplication **ET** `win.eventdata.subjectUserName` ne correspondant PAS à un compte machine DC (`$` final) — l'attaquant utilise un compte utilisateur, pas un compte ordinateur.
+>  **Piste d'amélioration :** la règle actuelle matche tout event 4662, y compris la réplication légitime entre DC. Pour affiner (moins de bruit, spécifique à un abus), ajouter un filtre sur `win.eventdata.properties` contenant les GUID de réplication **ET** `win.eventdata.subjectUserName` ne correspondant PAS à un compte machine DC (`$` final) — l'attaquant utilise un compte utilisateur, pas un compte ordinateur.
 
 ---
 
-## 🎯 Règle custom #2 — Kerberoasting détecté
+##  Règle custom #2 — Kerberoasting détecté
 
 ### Contexte
 
@@ -226,23 +226,23 @@ La règle initiale utilisait `<if_sid>60106</if_sid>` (SID dédié aux logons 47
 
 ```
 rule.id: 100011
-ticketEncryptionType: 0x17       ← RC4 = signature du Kerberoasting
-3 hits en 12:07:47 (18 août 2026) ← cluster temporel = rafale de requêtes impacket
+ticketEncryptionType: 0x17        RC4 = signature du Kerberoasting
+3 hits en 12:07:47 (18 août 2026)  cluster temporel = rafale de requêtes impacket
 ```
 
 Attack rejouée avec : `GetUserSPNs.py north.sevenkingdoms.local/arya.stark:Needle -dc-ip 192.168.56.11 -request`
 
-**Le Kerberoasting (attaque 01), partiellement détecté en Phase 4, est maintenant alerté précisément.** 🟢
+**Le Kerberoasting (attaque 01), partiellement détecté en Phase 4, est maintenant alerté précisément.** 
 
-> 💡 **Piste d'amélioration :** ajouter un filtre sur `win.eventdata.clientAddress` pour exclure les DC eux-mêmes (loopback, IPs des DC), afin de réduire les faux positifs des opérations Kerberos légitimes inter-DC. Ajouter également un filtre sur `win.eventdata.serviceName` pour cibler uniquement les comptes non-machine (sans `$` final).
+>  **Piste d'amélioration :** ajouter un filtre sur `win.eventdata.clientAddress` pour exclure les DC eux-mêmes (loopback, IPs des DC), afin de réduire les faux positifs des opérations Kerberos légitimes inter-DC. Ajouter également un filtre sur `win.eventdata.serviceName` pour cibler uniquement les comptes non-machine (sans `$` final).
 
 ---
 
-## 🎯 Règle custom #3 — ADCS ESC1 détecté
+##  Règle custom #3 — ADCS ESC1 détecté
 
 ### Contexte
 
-L'ADCS ESC1 (Active Directory Certificate Services — Enrollee Supplies Subject) permet à n'importe quel utilisateur du domaine de demander un certificat **au nom d'un autre utilisateur** (ex: administrator), obtenant ainsi un accès complet à la forêt. C'est l'une des élévations de privilèges les plus dévastatrices : Domain User → Enterprise Admin en une commande.
+L'ADCS ESC1 (Active Directory Certificate Services — Enrollee Supplies Subject) permet à n'importe quel utilisateur du domaine de demander un certificat **au nom d'un autre utilisateur** (ex: administrator), obtenant ainsi un accès complet à la forêt. C'est l'une des élévations de privilèges les plus dévastatrices : Domain User  Enterprise Admin en une commande.
 
 **Signature clé :** Event 4887 (Certificate Services approved a certificate request) dans le journal Security du serveur CA.
 
@@ -276,19 +276,19 @@ Sans la deuxième étape, aucun Event 4886/4887 n'est généré même avec l'aud
 ```
 rule.id: 100012
 eventID: 4887
-agent.name: kingslanding             ← le serveur CA (DC01 sevenkingdoms)
-2 hits le 18 août 2026 à 12:33-12:34 ← les 2 requêtes certipy successives
+agent.name: kingslanding              le serveur CA (DC01 sevenkingdoms)
+2 hits le 18 août 2026 à 12:33-12:34  les 2 requêtes certipy successives
 ```
 
 Attack rejouée avec : `certipy req -u cersei.lannister@sevenkingdoms.local -p 'il0vejaime' -ca 'SEVENKINGDOMS-CA' -target kingslanding.sevenkingdoms.local -template ESC1 -upn administrator@sevenkingdoms.local`
 
-Résultat de l'attaque : certificat émis avec UPN `administrator@sevenkingdoms.local` → hash NT admin récupérable via `certipy auth -pfx administrator.pfx`.
+Résultat de l'attaque : certificat émis avec UPN `administrator@sevenkingdoms.local`  hash NT admin récupérable via `certipy auth -pfx administrator.pfx`.
 
-**L'ADCS ESC1 (attaque 08), angle mort critique de la Phase 4, est maintenant détecté.** 🟢
+**L'ADCS ESC1 (attaque 08), angle mort critique de la Phase 4, est maintenant détecté.** 
 
 ---
 
-## 🎯 Règle custom #4 — MSSQL RCE (rédigée, contrainte lab)
+##  Règle custom #4 — MSSQL RCE (rédigée, contrainte lab)
 
 ### Contexte
 
@@ -319,38 +319,38 @@ L'attaque MSSQL RCE exploite `xp_cmdshell` pour exécuter des commandes système
 **Prérequis :** `eddard.stark` promu sysadmin via le mode single-user de SQL Server (arrêt du service, ajout du flag `-m` dans le registre `ImagePath`, redémarrage — tout local admin devient sysadmin en mode single-user, puis droits accordés normalement).
 
 ```
-rule.id: 100013                   ← level 12, mail: true
+rule.id: 100013                    level 12, mail: true
 eventID: 4688
 agent.name: castelblack
 parentProcessName: C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\Binn\sqlservr.exe
 newProcessName: C:\Windows\System32\cmd.exe
 commandLine: "C:\Windows\system32\cmd.exe" /c whoami
-subjectUserName: sql_svc          ← compte de service SQL = contexte d'exécution
+subjectUserName: sql_svc           compte de service SQL = contexte d'exécution
 7 hits confirmés le 18 août 2026
 ```
 
 Attack rejouée avec : `mssqlclient.py -windows-auth 'north.sevenkingdoms.local/eddard.stark:FightP3aceAndHonor!@192.168.56.22'` puis `EXEC xp_cmdshell 'whoami';`
 
-**Le MSSQL RCE via xp_cmdshell (attaque 10), angle mort de la Phase 4, est maintenant détecté.** 🟢
+**Le MSSQL RCE via xp_cmdshell (attaque 10), angle mort de la Phase 4, est maintenant détecté.** 
 
-> 💡 La règle matche dès qu'un processus enfant (cmd.exe, powershell.exe, certutil.exe…) est créé par `sqlservr.exe` — signature très fiable d'un abus xp_cmdshell, quasi-inexistante en usage légitime de SQL Server.
+>  La règle matche dès qu'un processus enfant (cmd.exe, powershell.exe, certutil.exe…) est créé par `sqlservr.exe` — signature très fiable d'un abus xp_cmdshell, quasi-inexistante en usage légitime de SQL Server.
 
 ---
 
-## 📊 Bilan Phase 5 — 4 règles custom
+##  Bilan Phase 5 — 4 règles custom
 
 | # | Règle | Event | MITRE | Statut |
 |---|-------|-------|-------|--------|
-| 100010 | DCSync | 4662 | T1003.006 | ✅ **Validé en live** (3 hits, tywin.lannister identifié) |
-| 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 | ✅ **Validé en live** (3 hits, RC4 détecté) |
-| 100012 | ADCS ESC1 | 4887 | T1649 | ✅ **Validé en live** (2 hits, certificat admin émis) |
-| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ✅ **Validé en live** (7 hits, xp_cmdshell whoami) |
+| 100010 | DCSync | 4662 | T1003.006 |  **Validé en live** (3 hits, tywin.lannister identifié) |
+| 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 |  **Validé en live** (3 hits, RC4 détecté) |
+| 100012 | ADCS ESC1 | 4887 | T1649 |  **Validé en live** (2 hits, certificat admin émis) |
+| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 |  **Validé en live** (7 hits, xp_cmdshell whoami) |
 
 **3 angles morts critiques de la Phase 4 sont désormais détectés.** La Phase 5 est complète.
 
 ---
 
-## 🎯 Règle custom #5 — AS-REP Roasting détecté
+##  Règle custom #5 — AS-REP Roasting détecté
 
 ### Contexte
 
@@ -381,16 +381,16 @@ L'AS-REP Roasting cible les comptes AD configurés sans pré-authentification Ke
 ```
 rule.id: 100014
 eventID: 4768
-preAuthType: 0         ← pas de pré-authentification = compte vulnérable
-ticketEncryptionType: 0x17   ← RC4, hash crackable hors-ligne
+preAuthType: 0          pas de pré-authentification = compte vulnérable
+ticketEncryptionType: 0x17    RC4, hash crackable hors-ligne
 1 hit confirmé le 18 août 2026
 ```
 
-**L'AS-REP Roasting (attaque 02), angle mort de la Phase 4, est maintenant détecté.** 🟢
+**L'AS-REP Roasting (attaque 02), angle mort de la Phase 4, est maintenant détecté.** 
 
 ---
 
-## 🚫 Angles morts non comblables par signature — LLMNR & Énumération LDAP
+##  Angles morts non comblables par signature — LLMNR & Énumération LDAP
 
 ### LLMNR/NBT-NS Poisoning (attaque 04)
 
@@ -398,7 +398,7 @@ L'attaque LLMNR/NBT-NS Poisoning ne génère **aucun event côté Windows** : c'
 
 **Ce qui serait nécessaire :** une solution NDR (Network Detection & Response) comme Zeek ou Suricata analysant le trafic réseau, hors périmètre de ce projet (SIEM basé sur les logs Windows).
 
-> 💡 En environnement réel, la meilleure défense est la remédiation : désactiver LLMNR via GPO (`Computer Configuration > Administrative Templates > Network > DNS Client > Turn off multicast name resolution`).
+>  En environnement réel, la meilleure défense est la remédiation : désactiver LLMNR via GPO (`Computer Configuration > Administrative Templates > Network > DNS Client > Turn off multicast name resolution`).
 
 ### Énumération LDAP (attaque 03)
 
@@ -410,7 +410,7 @@ Poser des SACLs sur l'ensemble des objets AD serait techniquement faisable mais 
 
 ---
 
-## 🎯 Règle custom #6 — Pass-the-Hash détecté
+##  Règle custom #6 — Pass-the-Hash détecté
 
 **Signature clé :** Event 4624 (Logon) avec LogonType=3 (réseau) et AuthenticationPackageName=NTLM — un logon réseau NTLM depuis un compte non-machine est la signature caractéristique d'un Pass-the-Hash.
 
@@ -428,11 +428,11 @@ Poser des SACLs sur l'ensemble des objets AD serait techniquement faisable mais 
 </group>
 ```
 
-**Résultat :** 5 hits live — connexion smbclient.py avec hash NTLM de jon.snow (nord.sevenkingdoms.local) détectée. 🟢
+**Résultat :** 5 hits live — connexion smbclient.py avec hash NTLM de jon.snow (nord.sevenkingdoms.local) détectée. 
 
 ---
 
-## 🎯 Règle custom #7 — Trust Abuse inter-domaine détecté
+##  Règle custom #7 — Trust Abuse inter-domaine détecté
 
 **Signature clé :** Logon NTLM réseau (4624 type 3) depuis un compte du domaine NORTH sur le DC parent (kingslanding/SEVENKINGDOMS) — signal d'un mouvement latéral inter-domaine ou d'une forgerie de ticket inter-realm.
 
@@ -450,11 +450,11 @@ La règle est chaînée sur 100017 (Pass-the-Hash) et affine sur `targetDomainNa
 </group>
 ```
 
-**Résultat :** 18 hits live — connexions NORTH→SEVENKINGDOMS détectées sur kingslanding. 🟢
+**Résultat :** 18 hits live — connexions NORTHSEVENKINGDOMS détectées sur kingslanding. 
 
 ---
 
-## 🚫 Angles morts non comblables par signature — LLMNR, Énumération LDAP & Golden Ticket
+##  Angles morts non comblables par signature — LLMNR, Énumération LDAP & Golden Ticket
 
 ### LLMNR/NBT-NS Poisoning (attaque 04)
 
@@ -462,31 +462,31 @@ Attaque **réseau pure** — aucun event Windows généré. Nécessite un NDR (Z
 
 ### Énumération LDAP (attaque 03)
 
-Event 4662 requiert des SACLs sur chaque objet AD ciblé. Sans SACLs, 0 event généré (confirmé live via `GetADUsers.py`). Avec SACLs généralisées : bruit inexploitable. → **Phase 6 (IA comportementale).**
+Event 4662 requiert des SACLs sur chaque objet AD ciblé. Sans SACLs, 0 event généré (confirmé live via `GetADUsers.py`). Avec SACLs généralisées : bruit inexploitable.  **Phase 6 (IA comportementale).**
 
 ### Golden Ticket (attaque 11)
 
-Ticket cryptographiquement valide — indiscernable d'un ticket légitime par signature. La règle 100018 testée (`ticketOptions=0x40810000`) générait 75 faux positifs sur du trafic Kerberos normal. → **Phase 6 (corrélation temporelle : TGS sans AS-REQ précédent).**
+Ticket cryptographiquement valide — indiscernable d'un ticket légitime par signature. La règle 100018 testée (`ticketOptions=0x40810000`) générait 75 faux positifs sur du trafic Kerberos normal.  **Phase 6 (corrélation temporelle : TGS sans AS-REQ précédent).**
 
 ---
 
-## 📊 Bilan final Phase 5 — 7 règles custom
+##  Bilan final Phase 5 — 7 règles custom
 
 | # | Règle | Event | MITRE | Statut |
 |---|-------|-------|-------|--------|
-| 100010 | DCSync | 4662 | T1003.006 | ✅ **Validé en live** (3 hits, tywin.lannister) |
-| 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 | ✅ **Validé en live** (3 hits, RC4) |
-| 100012 | ADCS ESC1 | 4887 | T1649 | ✅ **Validé en live** (2 hits, cert admin) |
-| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 | ✅ **Validé en live** (7 hits, xp_cmdshell) |
-| 100014 | AS-REP Roasting | 4768 + preAuthType=0 | T1558.004 | ✅ **Validé en live** (1 hit) |
-| 100017 | Pass-the-Hash | 4624 + NTLM + type 3 | T1550.002 | ✅ **Validé en live** (5 hits) |
-| 100019 | Trust Abuse | 4624 NORTH→SEVENKINGDOMS | T1482 | ✅ **Validé en live** (18 hits) |
-| — | LLMNR Poisoning | — | T1557.001 | 🚫 Attaque réseau, hors SIEM |
-| — | Énumération LDAP | 4662 | T1087.002 | 🚫 SACLs objet requis → Phase 6 |
-| — | Golden Ticket | 4769 | T1558.001 | 🚫 Indétectable par signature → Phase 6 |
+| 100010 | DCSync | 4662 | T1003.006 |  **Validé en live** (3 hits, tywin.lannister) |
+| 100011 | Kerberoasting | 4769 + 0x17 | T1558.003 |  **Validé en live** (3 hits, RC4) |
+| 100012 | ADCS ESC1 | 4887 | T1649 |  **Validé en live** (2 hits, cert admin) |
+| 100013 | MSSQL RCE | 4688 (parent sqlservr) | T1210 |  **Validé en live** (7 hits, xp_cmdshell) |
+| 100014 | AS-REP Roasting | 4768 + preAuthType=0 | T1558.004 |  **Validé en live** (1 hit) |
+| 100017 | Pass-the-Hash | 4624 + NTLM + type 3 | T1550.002 |  **Validé en live** (5 hits) |
+| 100019 | Trust Abuse | 4624 NORTHSEVENKINGDOMS | T1482 |  **Validé en live** (18 hits) |
+| — | LLMNR Poisoning | — | T1557.001 |  Attaque réseau, hors SIEM |
+| — | Énumération LDAP | 4662 | T1087.002 |  SACLs objet requis  Phase 6 |
+| — | Golden Ticket | 4769 | T1558.001 |  Indétectable par signature  Phase 6 |
 
 **7 règles custom validées en live. Phase 5 complète.**
 
 ---
 
-⬅️ Retour à la [simulation des attaques](../simulation/03-attaques.md)
+⬅ Retour à la [simulation des attaques](../simulation/03-attaques.md)

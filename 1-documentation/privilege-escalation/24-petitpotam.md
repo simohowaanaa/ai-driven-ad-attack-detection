@@ -7,13 +7,13 @@
 | **Phase kill chain** | Credential Access / Lateral Movement |
 | **CVE** | Abus de MS-EFSR (mitigé par patchs successifs) |
 | **Privilèges requis** | Souvent non authentifié (selon patch level) |
-| **Impact** | Critique (combiné à un relais ADCS → DA) |
+| **Impact** | Critique (combiné à un relais ADCS  DA) |
 
 ---
 
 ## 1. Description
 
-**PetitPotam** abuse le protocole **MS-EFSR** (Encrypting File System Remote), fonctions comme `EfsRpcOpenFileRaw`, pour **forcer un serveur/DC à s'authentifier** vers une machine arbitraire. Ce n'est pas une élévation en soi, mais un **déclencheur de coercion** : le compte machine du DC est relayé (fiche 17) vers **ADCS (ESC8)** ou LDAP (RBCD) → compromission du domaine. La famille inclut aussi **PrinterBug** (MS-RPRN), **DFSCoerce** (MS-DFSNM), **ShadowCoerce**.
+**PetitPotam** abuse le protocole **MS-EFSR** (Encrypting File System Remote), fonctions comme `EfsRpcOpenFileRaw`, pour **forcer un serveur/DC à s'authentifier** vers une machine arbitraire. Ce n'est pas une élévation en soi, mais un **déclencheur de coercion** : le compte machine du DC est relayé (fiche 17) vers **ADCS (ESC8)** ou LDAP (RBCD)  compromission du domaine. La famille inclut aussi **PrinterBug** (MS-RPRN), **DFSCoerce** (MS-DFSNM), **ShadowCoerce**.
 
 ## 2. Prérequis
 - Accès réseau RPC au DC/serveur.
@@ -75,7 +75,7 @@ level: high
 ## 7. Features pour l'agent IA
 - Appels RPC de coercion vers un DC (feature réseau).
 - Compte machine DC authentifié vers un hôte inhabituel.
-- Séquence coercion → relais → émission de certificat / RBCD.
+- Séquence coercion  relais  émission de certificat / RBCD.
 
 ## 8. Références
 - https://attack.mitre.org/techniques/T1187/

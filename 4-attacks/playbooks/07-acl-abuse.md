@@ -1,4 +1,4 @@
-# ⚔️ Attaque 07 — Abus d'ACL (GenericWrite → Group Membership)
+#  Attaque 07 — Abus d'ACL (GenericWrite  Group Membership)
 
 | | |
 |---|---|
@@ -6,13 +6,13 @@
 | **MITRE ATT&CK** | [T1222](https://attack.mitre.org/techniques/T1222/) · [T1098](https://attack.mitre.org/techniques/T1098/) |
 | **Fiche théorique** | [`../../docs/04-privilege-escalation/41-acl-dacl-abuse.md`](../../docs/04-privilege-escalation/41-acl-dacl-abuse.md) |
 | **Cible** | `north.sevenkingdoms.local` — groupe `domain admins` |
-| **Compte attaquant** | `jon.snow` → `Domain Admin` via `GenericWrite` sur `night.king` |
+| **Compte attaquant** | `jon.snow`  `Domain Admin` via `GenericWrite` sur `night.king` |
 | **Outil** | `net` (Windows) · impacket · BloodHound |
-| **Statut détection Wazuh** | ✅ Bien détecté — Event 4728 (ajout de membre) visible |
+| **Statut détection Wazuh** |  Bien détecté — Event 4728 (ajout de membre) visible |
 
 ---
 
-## 1. 🧠 Description
+## 1.  Description
 
 > **Le concept en une phrase :** dans AD, chaque objet (compte, groupe, machine) a une liste de droits définissant qui peut le modifier — un droit `GenericWrite` sur un compte signifie qu'on peut changer son mot de passe, et donc l'usurper.
 
@@ -30,18 +30,18 @@ Les **ACL** (Access Control Lists) dans Active Directory définissent qui peut f
 4. L'attaquant ajoute `jon.snow` aux Domain Admins
 5. `jon.snow` est maintenant Domain Admin
 
-→ Escalade de privilèges complète en abusant de droits AD mal configurés.
+ Escalade de privilèges complète en abusant de droits AD mal configurés.
 
-## 2. 🎯 Prérequis
+## 2.  Prérequis
 
 - Un **compte de domaine** avec un droit ACL abusable (trouvé via BloodHound)
-- Ici : `jon.snow` → `GenericWrite` sur `night.king` → `GenericWrite` sur `domain admins`
+- Ici : `jon.snow`  `GenericWrite` sur `night.king`  `GenericWrite` sur `domain admins`
 
-## 3. 💻 Exécution
+## 3.  Exécution
 
 ### Étape 1 — Identifier la chaîne d'ACL abusables avec BloodHound
 
-BloodHound révèle le chemin `jon.snow → [GenericWrite] → night.king → [GenericWrite] → domain admins`.
+BloodHound révèle le chemin `jon.snow  [GenericWrite]  night.king  [GenericWrite]  domain admins`.
 
 ![Chemin d'attaque ACL dans BloodHound](../screenshots/attacks/attack-07-acl-bloodhound.png)
 
@@ -51,7 +51,7 @@ BloodHound révèle le chemin `jon.snow → [GenericWrite] → night.king → [G
 net rpc password night.king 'NewPassword123!' -U 'north.sevenkingdoms.local/jon.snow%iknownothing' -S 192.168.56.11
 ```
 
-`jon.snow` a `GenericWrite` sur `night.king` → il peut forcer un changement de mot de passe.
+`jon.snow` a `GenericWrite` sur `night.king`  il peut forcer un changement de mot de passe.
 
 ### Étape 3 — Ajouter `jon.snow` aux Domain Admins
 
@@ -68,15 +68,15 @@ net rpc group addmem "Domain Admins" jon.snow -U 'north.sevenkingdoms.local/nigh
 net rpc group members "Domain Admins" -U 'north.sevenkingdoms.local/jon.snow%iknownothing' -S 192.168.56.11
 ```
 
-→ `NORTH\jon.snow` apparaît dans la liste des Domain Admins.
+ `NORTH\jon.snow` apparaît dans la liste des Domain Admins.
 
-## 4. 📤 Résultat
+## 4.  Résultat
 
 `jon.snow`, simple utilisateur du domaine au départ, est maintenant **Domain Admin** — sans exploiter aucune vulnérabilité logicielle, uniquement en abusant de droits AD mal configurés.
 
-## 5. 🛡️ Détection dans Wazuh — ✅ bien détecté
+## 5.  Détection dans Wazuh —  bien détecté
 
-**Recherche (Threat Hunting → Events) :**
+**Recherche (Threat Hunting  Events) :**
 ```
 data.win.system.eventID:4728 and data.win.eventdata.groupName:*Domain Admins*
 ```
@@ -91,7 +91,7 @@ data.win.system.eventID:4728 and data.win.eventdata.groupName:*Domain Admins*
 
 **Limite :** si l'attaquant ajoute le compte, l'utilise rapidement, puis le supprime du groupe, la fenêtre de détection est courte.
 
-## 6. 🎓 Analyse & leçon
+## 6.  Analyse & leçon
 
 > **Les mauvaises configurations AD sont aussi dangereuses que les failles logicielles.** Un droit `GenericWrite` accordé par inadvertance il y a 5 ans peut suffire à compromettre le domaine entier aujourd'hui. BloodHound est l'outil qui révèle ces chemins cachés.
 
@@ -100,7 +100,7 @@ data.win.system.eventID:4728 and data.win.eventdata.groupName:*Domain Admins*
 - BloodHound est aussi un outil de **défense** : les équipes bleues l'utilisent pour cartographier leurs propres expositions.
 - Les ACL AD sont souvent héritées et jamais réauditées — c'est un risque majeur silencieux.
 
-## 7. 🔧 Remédiation
+## 7.  Remédiation
 
 - **Auditer les ACL AD** régulièrement (BloodHound en mode défensif, ou `Get-DomainObjectAcl` via PowerView).
 - Appliquer le **principe du moindre privilège** : supprimer tout `GenericWrite`/`GenericAll` inutile sur des objets sensibles.
@@ -109,4 +109,4 @@ data.win.system.eventID:4728 and data.win.eventdata.groupName:*Domain Admins*
 
 ---
 
-⬅️ Retour à l'[index des attaques](../03-attaques.md)
+⬅ Retour à l'[index des attaques](../03-attaques.md)

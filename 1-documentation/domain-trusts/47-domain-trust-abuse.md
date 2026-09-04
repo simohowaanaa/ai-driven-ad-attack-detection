@@ -15,7 +15,7 @@
 
 Les entreprises relient plusieurs domaines par des **relations de confiance (trusts)** : les utilisateurs d'un domaine A peuvent accéder aux ressources d'un domaine B. Deux abus majeurs :
 
-- **SID History inter-domaine :** en forgeant un ticket (Golden Ticket) et en y injectant le **SID d'un groupe privilégié de l'AUTRE domaine** (ex. Enterprise Admins), on obtient des droits **dans le domaine cible**. Si le **SID Filtering** n'est pas actif (cas fréquent des trusts **intra-forêt**), l'attaque réussit → compromission de toute la **forêt**.
+- **SID History inter-domaine :** en forgeant un ticket (Golden Ticket) et en y injectant le **SID d'un groupe privilégié de l'AUTRE domaine** (ex. Enterprise Admins), on obtient des droits **dans le domaine cible**. Si le **SID Filtering** n'est pas actif (cas fréquent des trusts **intra-forêt**), l'attaque réussit  compromission de toute la **forêt**.
 - **Trust Key (inter-realm TGT) :** chaque trust a une **clé partagée**. En la volant (via DCSync sur le compte de trust `DOMAINB$`), on forge un **ticket inter-domaine** pour accéder au domaine de confiance.
 
 ## 2. Prérequis

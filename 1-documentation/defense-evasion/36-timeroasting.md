@@ -36,12 +36,12 @@ hashcat -m 31300 timeroast_hashes.txt rockyou.txt
 | Réseau / NDR | — | **Rafale de requêtes NTP (123/UDP)** avec des RID variés vers le DC |
 | Windows | (peu/pas de log natif) | MS-SNTP n'est généralement pas journalisé côté Security |
 
-**Anomalie clé :** volume anormal de requêtes NTP authentifiées (MS-SNTP) énumérant des RID depuis une seule source → **détection surtout réseau (NDR)**.
+**Anomalie clé :** volume anormal de requêtes NTP authentifiées (MS-SNTP) énumérant des RID depuis une seule source  **détection surtout réseau (NDR)**.
 
 ## 5. Détection
 
 ### Logique
-Le service Windows ne journalise quasiment pas MS-SNTP → la détection est **réseau** : repérer une source unique envoyant de nombreuses requêtes NTP « client authentifié » (extension MS-SNTP) au DC, balayant les RID.
+Le service Windows ne journalise quasiment pas MS-SNTP  la détection est **réseau** : repérer une source unique envoyant de nombreuses requêtes NTP « client authentifié » (extension MS-SNTP) au DC, balayant les RID.
 
 ### Règle Sigma (NDR / Zeek)
 ```yaml

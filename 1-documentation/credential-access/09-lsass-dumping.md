@@ -82,7 +82,7 @@ level: high
 ## 7. Features pour l'agent IA
 - Process source accédant à LSASS (feature : image non whitelistée).
 - Masque d'accès demandé (lecture mémoire = suspect).
-- Corrélation dump LSASS → mouvement latéral (PtH) dans les minutes suivantes.
+- Corrélation dump LSASS  mouvement latéral (PtH) dans les minutes suivantes.
 - Rareté du binaire source (procdump/comsvcs sur un poste bureautique).
 
 ## 8. Références

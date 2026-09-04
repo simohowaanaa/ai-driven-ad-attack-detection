@@ -25,7 +25,7 @@ Cette fiche isole la **primitive** exploitée par noPac (voir fiche 23) : avant 
 # Créer un compte machine puis le renommer sans le "$"
 addcomputer.py -computer-name 'EVIL$' -computer-pass 'Pass123' domaine.local/user:pass
 renameMachine.py -current-name 'EVIL$' -new-name 'DC01' domaine.local/user:pass
-# → puis chaîne S4U (cf. fiche 23 noPac)
+#  puis chaîne S4U (cf. fiche 23 noPac)
 ```
 
 ## 4. Télémétrie générée (logs)
@@ -72,7 +72,7 @@ level: high
 ## 7. Features pour l'agent IA
 - Renommage (4781) d'un compte machine vers un nom sans `$` (feature booléenne).
 - Similarité du nouveau nom avec un nom de DC (distance de chaîne).
-- Séquence create(4741) → rename(4781) → S4U par un utilisateur standard.
+- Séquence create(4741)  rename(4781)  S4U par un utilisateur standard.
 
 ## 8. Références
 - https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-42278

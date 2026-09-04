@@ -65,7 +65,7 @@ level: low
 
 ## 7. Features pour l'agent IA
 - Requête LDAP filtrée sur SPN + faible fréquence historique de l'hôte.
-- **Séquence** : SPN scan → rafale de 4769 (fort indicateur de chaîne d'attaque).
+- **Séquence** : SPN scan  rafale de 4769 (fort indicateur de chaîne d'attaque).
 
 ## 8. Références
 - https://attack.mitre.org/techniques/T1046/

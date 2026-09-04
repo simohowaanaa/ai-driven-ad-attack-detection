@@ -35,12 +35,12 @@ ticketer.py -nthash <service_hash> -domain-sid S-1-5-21-... -domain domaine.loca
 | Security (**cible**, pas le DC) | 4624 | Logon utilisant le TGS forgé |
 | **Absence** de 4768/4769 côté DC | — | Signature d'anomalie (ticket jamais émis par le KDC) |
 
-**Anomalie clé :** accès à un service **sans TGS correspondant (4769)** émis par le DC → le ticket a été forgé.
+**Anomalie clé :** accès à un service **sans TGS correspondant (4769)** émis par le DC  le ticket a été forgé.
 
 ## 5. Détection
 
 ### Logique
-Corréler un logon Kerberos sur un service avec **l'absence de 4769** correspondant côté DC. Nécessite une corrélation stateful (endpoint ↔ DC) → **cas d'usage IA**.
+Corréler un logon Kerberos sur un service avec **l'absence de 4769** correspondant côté DC. Nécessite une corrélation stateful (endpoint  DC)  **cas d'usage IA**.
 
 ### Règle Sigma
 ```yaml
@@ -53,7 +53,7 @@ detection:
     logon:
         EventID: 4624
         AuthenticationPackageName: 'Kerberos'
-    # corrélation "pas de 4769 correspondant" → moteur SIEM/IA
+    # corrélation "pas de 4769 correspondant"  moteur SIEM/IA
     condition: logon
 level: medium
 falsepositives:

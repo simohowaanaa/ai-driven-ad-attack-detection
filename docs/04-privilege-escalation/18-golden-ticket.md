@@ -25,7 +25,7 @@ Comme le TGT est forgé hors-ligne et accepté par tous les DC sans re-vérifica
 
 ## 3. Procédure de simulation (lab)
 
-> ⚠️ Lab isolé uniquement.
+>  Lab isolé uniquement.
 
 **Outils :** Mimikatz, Impacket (`ticketer.py`).
 
@@ -52,7 +52,7 @@ psexec.py -k -no-pass domaine.local/Administrator@dc01
 | Security (DC) | 4624 | Logon avec le compte usurpé |
 
 **Anomalies discriminantes :**
-- **TGS (4769) sans TGT (4768) correspondant** pour le compte → le TGT n'a jamais été légitimement émis.
+- **TGS (4769) sans TGT (4768) correspondant** pour le compte  le TGT n'a jamais été légitimement émis.
 - Durée de vie de ticket anormale (10 ans par défaut Mimikatz).
 - Champs incohérents dans le PAC / nom de domaine mal formé (anciennes versions de Mimikatz mettaient `eo.oe.kiwi`).
 - Compte inexistant/désactivé présentant une activité Kerberos.
@@ -61,7 +61,7 @@ psexec.py -k -no-pass domaine.local/Administrator@dc01
 
 ### Logique de détection
 Difficile par signature. Approches :
-1. **Corrélation 4769 sans 4768** correspondant (nécessite de suivre l'état par compte → cas d'usage IA idéal).
+1. **Corrélation 4769 sans 4768** correspondant (nécessite de suivre l'état par compte  cas d'usage IA idéal).
 2. Durée de vie de ticket > politique de domaine.
 3. Activité d'un compte krbtgt-forgé (SID/RID incohérents).
 

@@ -15,7 +15,7 @@
 
 La **délégation Kerberos** permet à un service d'agir « au nom » d'un utilisateur. Trois variantes abusables :
 
-- **Unconstrained (UD)** : un hôte avec délégation non contrainte **met en cache les TGT** de tout utilisateur qui s'y connecte. En forçant un DA (ou un DC via coercion) à s'y authentifier, on capture son TGT → compromission.
+- **Unconstrained (UD)** : un hôte avec délégation non contrainte **met en cache les TGT** de tout utilisateur qui s'y connecte. En forçant un DA (ou un DC via coercion) à s'y authentifier, on capture son TGT  compromission.
 - **Constrained (CD)** : le service peut demander des tickets pour des services précis « au nom » d'un utilisateur (S4U2Proxy). Abus si on contrôle le compte délégué, avec **S4U2Self** pour usurper n'importe qui (protocol transition).
 - **Resource-Based Constrained Delegation (RBCD)** : la délégation est définie **côté ressource** (`msDS-AllowedToActOnBehalfOfOtherIdentity`). Si on peut **écrire cet attribut** sur un ordinateur cible (via un compte machine qu'on crée), on usurpe un admin sur cette machine.
 

@@ -65,7 +65,7 @@ level: high
 - Alerte immédiate sur 5136 ciblant AdminSDHolder.
 
 ## 7. Features pour l'agent IA
-- Modification de la DACL d'AdminSDHolder (événement rarissime → forte alerte).
+- Modification de la DACL d'AdminSDHolder (événement rarissime  forte alerte).
 - Apparition de nouveaux `adminCount=1` non corrélés à un ajout de groupe légitime.
 - ACE accordant Full Control à un principal non-admin sur objets protégés.
 

@@ -15,7 +15,7 @@
 
 Dans Kerberos, tout compte de domaine peut demander un **ticket de service (TGS)** pour n'importe quel service enregistré via un **SPN** (Service Principal Name). La partie du ticket destinée au service est **chiffrée avec le hash NTLM du compte de service** propriétaire du SPN.
 
-L'attaquant demande des TGS pour des comptes de service, extrait la portion chiffrée, et la casse **hors-ligne** (Hashcat) pour récupérer le mot de passe en clair. Les comptes de service ont souvent des mots de passe faibles, rarement changés, et des privilèges élevés → cible idéale.
+L'attaquant demande des TGS pour des comptes de service, extrait la portion chiffrée, et la casse **hors-ligne** (Hashcat) pour récupérer le mot de passe en clair. Les comptes de service ont souvent des mots de passe faibles, rarement changés, et des privilèges élevés  cible idéale.
 
 Le point clé : **aucune interaction avec le compte de service n'est requise**, et la phase de cassage est offline (invisible du SIEM). Seule la **demande de TGS** est observable.
 
@@ -23,11 +23,11 @@ Le point clé : **aucune interaction avec le compte de service n'est requise**, 
 
 - Un compte de domaine valide (même non privilégié).
 - Existence de comptes utilisateurs avec un `servicePrincipalName` défini (comptes de service).
-- Idéalement, chiffrement **RC4 (etype 0x17)** encore autorisé → cassage bien plus rapide qu'AES.
+- Idéalement, chiffrement **RC4 (etype 0x17)** encore autorisé  cassage bien plus rapide qu'AES.
 
 ## 3. Procédure de simulation (lab)
 
-> ⚠️ Lab isolé uniquement.
+>  Lab isolé uniquement.
 
 **Outils :** Rubeus, Impacket (`GetUserSPNs.py`), Hashcat.
 
@@ -63,7 +63,7 @@ hashcat -m 13100 kerberoast.hash rockyou.txt
 | Security (DC) | 4768 | TGT requested (contexte) |
 
 **Champs discriminants du 4769 :**
-- `Ticket Encryption Type = 0x17` (RC4) → très suspect si le domaine supporte AES.
+- `Ticket Encryption Type = 0x17` (RC4)  très suspect si le domaine supporte AES.
 - `Service Name` = compte utilisateur (pas une machine se terminant par `$`).
 - `Ticket Options` = 0x40810000.
 - Volume : **plusieurs 4769 en rafale** depuis un même compte source vers plusieurs SPN.

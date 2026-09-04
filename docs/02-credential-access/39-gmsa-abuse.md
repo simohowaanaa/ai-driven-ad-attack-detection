@@ -27,7 +27,7 @@ nxc ldap 10.0.0.10 -u pc-design-07$ -H <hash> --gmsa
 gMSADumper.py -u othmane -p Marketing2025 -d datacorp.local
 ```
 
-**Résultat :** `svc_gmsa$ → NTLM: 3f8a...` → utilisable en Pass-the-Hash / Silver Ticket.
+**Résultat :** `svc_gmsa$  NTLM: 3f8a...`  utilisable en Pass-the-Hash / Silver Ticket.
 
 ## 4. Télémétrie générée (logs)
 
@@ -64,7 +64,7 @@ level: medium
 
 ## 7. Features pour l'agent IA
 - Lecture de `msDS-ManagedPassword` par un principal hors liste attendue.
-- Corrélation : lecture gMSA → authentification du gMSA depuis un hôte inhabituel.
+- Corrélation : lecture gMSA  authentification du gMSA depuis un hôte inhabituel.
 - Nouveauté de la relation (compte lecteur, gMSA).
 
 ## 8. Références

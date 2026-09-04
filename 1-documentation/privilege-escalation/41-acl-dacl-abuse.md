@@ -18,14 +18,14 @@ Chaque objet AD (utilisateur, groupe, GPO, ordinateur…) a une **liste de contr
 | Droit (arête BloodHound) | Ce que l'attaquant peut faire |
 |--------------------------|-------------------------------|
 | **GenericAll** | Contrôle total de l'objet (tout faire) |
-| **GenericWrite** | Écrire des attributs (SPN → Kerberoast ciblé, KeyCredentialLink → Shadow Creds) |
-| **WriteDACL** | Modifier la DACL → s'octroyer plus de droits |
-| **WriteOwner** | Devenir propriétaire de l'objet → puis WriteDACL |
+| **GenericWrite** | Écrire des attributs (SPN  Kerberoast ciblé, KeyCredentialLink  Shadow Creds) |
+| **WriteDACL** | Modifier la DACL  s'octroyer plus de droits |
+| **WriteOwner** | Devenir propriétaire de l'objet  puis WriteDACL |
 | **ForceChangePassword** | Réinitialiser le mot de passe de la cible |
 | **AddMember** | S'ajouter à un groupe (ex. Domain Admins) |
 | **AddSelf** | S'ajouter soi-même à un groupe |
 
-En **enchaînant** ces droits (`othmane` → WriteDACL sur un groupe → AddMember → Domain Admins), on remonte jusqu'à DA.
+En **enchaînant** ces droits (`othmane`  WriteDACL sur un groupe  AddMember  Domain Admins), on remonte jusqu'à DA.
 
 ## 2. Prérequis
 - Au moins un droit d'écriture exploitable sur un objet (souvent découvert via BloodHound).
@@ -39,7 +39,7 @@ net rpc password "cible" "NouveauPass1!" -U datacorp.local/othmane%Marketing2025
 # Exemple : s'ajouter à un groupe (AddMember) via bloodyAD
 bloodyAD -u othmane -p Marketing2025 -d datacorp.local --host dc01 add groupMember "Domain Admins" othmane
 
-# Exemple : GenericWrite → poser un SPN puis Kerberoast ciblé (targeted Kerberoasting)
+# Exemple : GenericWrite  poser un SPN puis Kerberoast ciblé (targeted Kerberoasting)
 targetedKerberoast.py -u othmane -p Marketing2025 -d datacorp.local
 ```
 
@@ -93,7 +93,7 @@ level: high
 - Ajout à un groupe privilégié par un compte non-admin (feature booléenne forte).
 - Modification de DACL / propriétaire sur des objets sensibles.
 - Reset de mot de passe (4724) hors help-desk habituel.
-- Séquence : WriteOwner → WriteDACL → AddMember (chaîne d'escalade).
+- Séquence : WriteOwner  WriteDACL  AddMember (chaîne d'escalade).
 
 ## 8. Références
 - https://bloodhound.specterops.io/resources/edges/overview

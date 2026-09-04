@@ -25,7 +25,7 @@ Les mots de passe des **gMSA** (fiche 39) sont dérivés d'un secret central : l
 GoldenGMSA.exe kdsinfo
 # 2. Calculer offline le mot de passe d'un gMSA cible
 GoldenGMSA.exe compute --sid <SID_gMSA> --kdskey <kds_root_key>
-→ svc_gmsa$ : mot de passe / hash NT  (calculé sans toucher au DC)
+ svc_gmsa$ : mot de passe / hash NT  (calculé sans toucher au DC)
 ```
 
 ## 4. Télémétrie générée (logs)
@@ -64,7 +64,7 @@ level: high
 
 ## 7. Features pour l'agent IA
 - Accès à l'objet KDS Root Key (feature booléenne rare et forte).
-- Corrélation : accès KDS → authentification de gMSA depuis des hôtes inhabituels.
+- Corrélation : accès KDS  authentification de gMSA depuis des hôtes inhabituels.
 
 ## 8. Références
 - https://www.semperis.com/blog/golden-gmsa-attack/

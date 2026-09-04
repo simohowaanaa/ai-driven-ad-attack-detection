@@ -17,7 +17,7 @@
 
 ## 2. Prérequis
 - Droits admin/SYSTEM sur le DC.
-- Contourner LSA Protection (nécessite un driver signé côté attaquant → plus dur si RunAsPPL).
+- Contourner LSA Protection (nécessite un driver signé côté attaquant  plus dur si RunAsPPL).
 
 ## 3. Procédure de simulation (lab)
 

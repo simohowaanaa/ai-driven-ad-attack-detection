@@ -7,13 +7,13 @@
 | **Phase kill chain** | Credential Access / Lateral Movement |
 | **CVE** | Abus de fonctionnalité MS-RPRN |
 | **Privilèges requis** | Un compte de domaine authentifié |
-| **Impact** | Élevé à Critique (coercition → relais → DA) |
+| **Impact** | Élevé à Critique (coercition  relais  DA) |
 
 ---
 
 ## 1. Description
 
-Le **PrinterBug** abuse le protocole d'impression **MS-RPRN** (fonction `RpcRemoteFindFirstPrinterChangeNotification`). Tout compte de domaine peut demander à un serveur (souvent un **DC**, où le spouleur d'impression tourne par défaut) de le **notifier des changements d'impression** — ce qui **force ce serveur à s'authentifier** vers une machine arbitraire. C'est un **cousin de PetitPotam** (fiche 24) : une **coercition** qui alimente un **NTLM Relay** vers ADCS (ESC8) ou LDAP (RBCD) → compromission du domaine.
+Le **PrinterBug** abuse le protocole d'impression **MS-RPRN** (fonction `RpcRemoteFindFirstPrinterChangeNotification`). Tout compte de domaine peut demander à un serveur (souvent un **DC**, où le spouleur d'impression tourne par défaut) de le **notifier des changements d'impression** — ce qui **force ce serveur à s'authentifier** vers une machine arbitraire. C'est un **cousin de PetitPotam** (fiche 24) : une **coercition** qui alimente un **NTLM Relay** vers ADCS (ESC8) ou LDAP (RBCD)  compromission du domaine.
 
 ## 2. Prérequis
 - Un compte de domaine valide.
@@ -69,7 +69,7 @@ level: high
 ## 7. Features pour l'agent IA
 - Appel MS-RPRN (`spoolss`) vers un DC (feature réseau).
 - Compte machine DC authentifié vers un hôte inhabituel.
-- Séquence coercion → relais → émission de certificat / RBCD.
+- Séquence coercion  relais  émission de certificat / RBCD.
 
 ## 8. Références
 - https://attack.mitre.org/techniques/T1187/

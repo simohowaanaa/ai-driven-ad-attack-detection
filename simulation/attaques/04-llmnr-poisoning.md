@@ -1,4 +1,4 @@
-# ⚔️ Attaque 04 — LLMNR / NBT-NS Poisoning (Responder)
+#  Attaque 04 — LLMNR / NBT-NS Poisoning (Responder)
 
 | | |
 |---|---|
@@ -8,11 +8,11 @@
 | **Cible** | Tout utilisateur du réseau qui tape un nom de machine inexistant |
 | **Compte attaquant** | aucun — juste un accès réseau local |
 | **Outil** | `Responder` |
-| **Statut détection Wazuh** | 🔴 Angle mort structurel — attaque réseau, hors périmètre des logs Windows |
+| **Statut détection Wazuh** |  Angle mort structurel — attaque réseau, hors périmètre des logs Windows |
 
 ---
 
-## 1. 🧠 Description
+## 1.  Description
 
 > **Le concept en une phrase :** quand un utilisateur tape un nom de machine qui n'existe pas dans le DNS, Windows crie la question sur le réseau — l'attaquant répond "c'est moi !" et récupère le hash du mot de passe de cet utilisateur.
 
@@ -27,12 +27,12 @@
 - Un script qui pointe vers un serveur qui n'existe plus
 - Une application mal configurée
 
-## 2. 🎯 Prérequis
+## 2.  Prérequis
 
 - Un **accès au réseau local** (même réseau que les victimes)
 - Aucun compte de domaine nécessaire
 
-## 3. 💻 Exécution
+## 3.  Exécution
 
 ### Lancer Responder et attendre les victimes
 
@@ -47,7 +47,7 @@ responder -I eth0 -wrf
 | `-r` | activer le mode NBT-NS |
 | `-f` | fingerprinting des cibles |
 
-Responder écoute en silence. Dès qu'un utilisateur tape un nom inexistant → son hash NTLMv2 apparaît dans la console.
+Responder écoute en silence. Dès qu'un utilisateur tape un nom inexistant  son hash NTLMv2 apparaît dans la console.
 
 ![Responder intercepte un hash NTLMv2 en live](../screenshots/attacks/attack-04-llmnr-responder.png)
 
@@ -57,15 +57,15 @@ Responder écoute en silence. Dès qu'un utilisateur tape un nom inexistant → 
 hashcat -m 5600 hashes_ntlmv2.txt wordlist.txt
 ```
 
-Si le mot de passe est dans la wordlist → compte compromis.
+Si le mot de passe est dans la wordlist  compte compromis.
 
-## 4. 📤 Résultat
+## 4.  Résultat
 
 Le hash NTLMv2 d'un utilisateur du réseau est intercepté. Deux options pour l'attaquant :
 - **Cracker le hash** hors ligne (si mot de passe faible)
 - **Relay attack** : retransmettre le hash en temps réel vers un autre service pour s'y authentifier sans même craquer
 
-## 5. 🛡️ Détection dans Wazuh — 🔴 angle mort structurel
+## 5.  Détection dans Wazuh —  angle mort structurel
 
 **Résultat : 0 hit** sur toutes les recherches.
 
@@ -81,7 +81,7 @@ Le hash NTLMv2 d'un utilisateur du réseau est intercepté. Deux options pour l'
 
 ![Aucun log lié à l'attaque LLMNR dans Wazuh](../screenshots/attacks/attack-04-llmnr-wazuh.png)
 
-## 6. 🎓 Analyse & leçon
+## 6.  Analyse & leçon
 
 > **L'attaque d'opportunité par excellence.** Pas besoin de compte, pas besoin de préparer quoi que ce soit — juste écouter. C'est souvent la première chose qu'un pentesteur fait en arrivant sur un réseau interne. Et c'est totalement invisible pour un SIEM qui ne lit que des logs Windows.
 
@@ -90,13 +90,13 @@ Le hash NTLMv2 d'un utilisateur du réseau est intercepté. Deux options pour l'
 - La vraie protection est de **désactiver LLMNR et NBT-NS** (ce qui n'a aucun impact négatif sur les environnements modernes avec un DNS bien configuré).
 - Ce cas illustre pourquoi une défense en profondeur combine SIEM *et* NDR.
 
-## 7. 🔧 Remédiation
+## 7.  Remédiation
 
-- **Désactiver LLMNR** via GPO : `Computer Configuration > Administrative Templates > Network > DNS Client > Turn off Multicast Name Resolution → Enabled`
-- **Désactiver NBT-NS** sur toutes les interfaces réseau (propriétés TCP/IP avancées → WINS → Disable NetBIOS over TCP/IP)
+- **Désactiver LLMNR** via GPO : `Computer Configuration > Administrative Templates > Network > DNS Client > Turn off Multicast Name Resolution  Enabled`
+- **Désactiver NBT-NS** sur toutes les interfaces réseau (propriétés TCP/IP avancées  WINS  Disable NetBIOS over TCP/IP)
 - Déployer un **IDS réseau** (Zeek, Suricata) pour détecter les broadcast Responder
 - Activer **SMB Signing** pour bloquer le relay attack même si le hash est intercepté
 
 ---
 
-⬅️ Retour à l'[index des attaques](../03-attaques.md)
+⬅ Retour à l'[index des attaques](../03-attaques.md)

@@ -13,7 +13,7 @@
 
 ## 1. Description
 
-**`NTDS.dit`** est la base de données AD stockée sur chaque DC ; elle contient **les hashes de tous les comptes du domaine** (chiffrés avec la clé BootKey/SYSTEM). Un attaquant admin d'un DC peut copier ce fichier (via **Volume Shadow Copy** pour contourner le verrou), extraire SYSTEM, et déchiffrer offline tous les hashes — dont **krbtgt** (→ Golden Ticket).
+**`NTDS.dit`** est la base de données AD stockée sur chaque DC ; elle contient **les hashes de tous les comptes du domaine** (chiffrés avec la clé BootKey/SYSTEM). Un attaquant admin d'un DC peut copier ce fichier (via **Volume Shadow Copy** pour contourner le verrou), extraire SYSTEM, et déchiffrer offline tous les hashes — dont **krbtgt** ( Golden Ticket).
 
 ## 2. Prérequis
 - Accès admin/SYSTEM sur un contrôleur de domaine.

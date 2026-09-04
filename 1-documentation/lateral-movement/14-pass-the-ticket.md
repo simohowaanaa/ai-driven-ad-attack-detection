@@ -56,13 +56,13 @@ logsource:
 detection:
     selection:
         EventID: 4769
-    # corrélation IP émission vs utilisation → moteur SIEM/IA
+    # corrélation IP émission vs utilisation  moteur SIEM/IA
     condition: selection
 level: medium
 ```
 
 ### Traduction SIEM
-- **Elastic (EQL) :** séquence 4768(IP_A) → 4769(IP_B) pour le même compte.
+- **Elastic (EQL) :** séquence 4768(IP_A)  4769(IP_B) pour le même compte.
 - **QRadar :** corréler avec Sysmon 10 (LSASS) en amont.
 
 ## 6. Contre-mesures / Hardening
@@ -73,7 +73,7 @@ level: medium
 ## 7. Features pour l'agent IA
 - Distance/écart entre host d'émission et host d'usage d'un ticket.
 - Réutilisation d'un même ticket depuis plusieurs sources.
-- Corrélation LSASS access → activité Kerberos ailleurs.
+- Corrélation LSASS access  activité Kerberos ailleurs.
 
 ## 8. Références
 - https://attack.mitre.org/techniques/T1550/003/

@@ -25,7 +25,7 @@ Un **SSP** est un DLL chargé par LSASS pour gérer l'authentification (Kerberos
 misc::memssp
 # ou persistant : déposer mimilib.dll dans System32 et l'ajouter à :
 # HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Security Packages
-# → mots de passe en clair dans C:\Windows\System32\kiwissp.log
+#  mots de passe en clair dans C:\Windows\System32\kiwissp.log
 ```
 
 ## 4. Télémétrie générée (logs)
@@ -68,7 +68,7 @@ level: high
 - Contrôle d'intégrité des DLL de System32.
 
 ## 7. Features pour l'agent IA
-- Modification de la clé `Security Packages` (rarissime → forte alerte).
+- Modification de la clé `Security Packages` (rarissime  forte alerte).
 - Chargement de DLL non signé dans LSASS.
 - Apparition d'un fichier de log inconnu (kiwissp.log) sur un DC.
 

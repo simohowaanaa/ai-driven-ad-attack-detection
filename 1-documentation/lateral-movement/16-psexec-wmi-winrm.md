@@ -18,7 +18,7 @@ Après avoir obtenu des credentials, l'attaquant exécute des commandes à dista
 - **WMI** : `Win32_Process.Create` via RPC/DCOM.
 - **WinRM** : PowerShell Remoting (5985/5986).
 
-Ces techniques sont difficiles à distinguer de l'administration normale → détection par **contexte** (source, compte, fréquence).
+Ces techniques sont difficiles à distinguer de l'administration normale  détection par **contexte** (source, compte, fréquence).
 
 ## 2. Prérequis
 - Credentials valides avec droits admin sur la cible.
@@ -40,12 +40,12 @@ Invoke-Command -ComputerName SRV01 -ScriptBlock { whoami }   # WinRM natif
 | Source | Event ID | Signification |
 |--------|----------|---------------|
 | Security (cible) | 4624 | Logon Type 3 |
-| Security (cible) | **7045** | **Service installé** (PsExec → PSEXESVC) |
+| Security (cible) | **7045** | **Service installé** (PsExec  PSEXESVC) |
 | Security (cible) | 4697 | Service installé (audit) |
-| Sysmon | 1 | `services.exe` → `cmd.exe`/`powershell.exe` (PsExec), `WmiPrvSE.exe` → child (WMI), `wsmprovhost.exe` (WinRM) |
+| Sysmon | 1 | `services.exe`  `cmd.exe`/`powershell.exe` (PsExec), `WmiPrvSE.exe`  child (WMI), `wsmprovhost.exe` (WinRM) |
 | WinRM | 4103/4104 | PowerShell remoting |
 
-**Anomalies :** parent-child inhabituel (`WmiPrvSE.exe` → `cmd.exe`), service au nom aléatoire, `wsmprovhost.exe` lançant des commandes.
+**Anomalies :** parent-child inhabituel (`WmiPrvSE.exe`  `cmd.exe`), service au nom aléatoire, `wsmprovhost.exe` lançant des commandes.
 
 ## 5. Détection
 
@@ -68,7 +68,7 @@ level: high
 ```
 
 ### Traduction SIEM
-- **Elastic :** `event.code:7045 and winlog.event_data.ServiceName:*PSEXESVC*` ; process ancestry `WmiPrvSE.exe`→shell.
+- **Elastic :** `event.code:7045 and winlog.event_data.ServiceName:*PSEXESVC*` ; process ancestry `WmiPrvSE.exe`shell.
 - **QRadar :** corréler 4624 Type 3 + 7045 + création de process shell.
 
 ## 6. Contre-mesures / Hardening
@@ -77,7 +77,7 @@ level: high
 - Segmentation, pare-feu hôte.
 
 ## 7. Features pour l'agent IA
-- Relations parent-child rares (`WmiPrvSE`/`services.exe`→shell).
+- Relations parent-child rares (`WmiPrvSE`/`services.exe`shell).
 - Fan-out : un compte exécutant à distance sur N hôtes.
 - Nom de service aléatoire / binaire en partage réseau.
 - Nouveauté de la paire (compte admin, hôte cible).

@@ -24,7 +24,7 @@ C'est extrêmement puissant : pas besoin de code sur le DC, pas de dump LSASS. L
 
 ## 3. Procédure de simulation (lab)
 
-> ⚠️ Lab isolé uniquement.
+>  Lab isolé uniquement.
 
 **Outils :** Mimikatz, Impacket (`secretsdump.py`).
 
@@ -51,12 +51,12 @@ secretsdump.py DOMAINE.LOCAL/admin:password@10.0.0.10 -just-dc
 - `Properties` contient les GUID de contrôle de réplication :
   - `1131f6aa-9c07-11d1-f79f-00c04fc2dcd2` (Get-Changes)
   - `1131f6ad-9c07-11d1-f79f-00c04fc2dcd2` (Get-Changes-All)
-- **Le compte source n'est PAS un contrôleur de domaine** → anomalie majeure.
+- **Le compte source n'est PAS un contrôleur de domaine**  anomalie majeure.
 
 ## 5. Détection
 
 ### Logique de détection
-Un 4662 avec les GUID de réplication provenant d'un compte **qui n'est pas un DC** = DCSync quasi certain. La whitelist des vrais DC est la clé pour éliminer les faux positifs (la réplication légitime DC↔DC est normale).
+Un 4662 avec les GUID de réplication provenant d'un compte **qui n'est pas un DC** = DCSync quasi certain. La whitelist des vrais DC est la clé pour éliminer les faux positifs (la réplication légitime DCDC est normale).
 
 ### Règle Sigma
 ```yaml
@@ -72,11 +72,11 @@ detection:
             - '1131f6aa-9c07-11d1-f79f-00c04fc2dcd2'
             - '1131f6ad-9c07-11d1-f79f-00c04fc2dcd2'
     filter_dc:
-        SubjectUserName|endswith: '$'   # comptes machine / DC légitimes → à affiner avec liste de DC
+        SubjectUserName|endswith: '$'   # comptes machine / DC légitimes  à affiner avec liste de DC
     condition: selection and not filter_dc
 level: critical
 ```
-> ⚠️ Affiner `filter_dc` avec la **liste explicite des comptes de DC** ; se contenter du `$` laisse passer un compte machine compromis.
+>  Affiner `filter_dc` avec la **liste explicite des comptes de DC** ; se contenter du `$` laisse passer un compte machine compromis.
 
 ### Traduction SIEM
 - **QRadar (AQL) :**

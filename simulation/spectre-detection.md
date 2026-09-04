@@ -1,10 +1,10 @@
-# 📊 Spectre de détection — synthèse des 12 attaques
+#  Spectre de détection — synthèse des 12 attaques
 
 > Vue d'ensemble transversale de la Phase 4 : pour chaque attaque, le statut de détection Wazuh et la leçon qu'elle illustre. Utile pour la soutenance comme résumé exécutif.
 
 ---
 
-## 🟢 Détecté (2/12)
+##  Détecté (2/12)
 
 | # | Attaque | Signal détecté |
 |---|---------|----------------|
@@ -13,7 +13,7 @@
 
 **Leçon :** les signaux **volumétriques** (spray) et les **actions sur groupes privilégiés** (ACL) sont bien couverts par les règles Wazuh par défaut.
 
-## 🟡 Partiel / Anomalie détectable (4/12)
+##  Partiel / Anomalie détectable (4/12)
 
 | # | Attaque | Ce qui est visible |
 |---|---------|---------------------|
@@ -24,7 +24,7 @@
 
 **Leçon :** les tickets **forgés** sont cryptographiquement valides donc invisibles aux règles de signature — mais laissent des **anomalies comportementales** (comptes inexistants, incohérences SID) détectables par une approche IA (Phase 6).
 
-## 🔴 Angle mort (6/12)
+##  Angle mort (6/12)
 
 | # | Attaque | Pourquoi invisible |
 |---|---------|---------------------|
@@ -39,10 +39,10 @@
 
 ---
 
-## 🎯 Conclusion
+##  Conclusion
 
 ```
-12 attaques  →  2 détectées  +  4 partielles  +  6 angles morts
+12 attaques    2 détectées  +  4 partielles  +  6 angles morts
 ```
 
 Un SIEM par défaut, même bien déployé, **ne suffit pas** face à un attaquant qui connaît les techniques AD modernes (ADCS, DCSync, forge de tickets). La détection efficace nécessite :
@@ -52,4 +52,4 @@ Un SIEM par défaut, même bien déployé, **ne suffit pas** face à un attaquan
 
 ---
 
-⬅️ Retour à la [simulation des attaques](03-attaques.md)
+⬅ Retour à la [simulation des attaques](03-attaques.md)

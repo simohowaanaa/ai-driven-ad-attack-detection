@@ -40,12 +40,12 @@ certipy auth -pfx administrator_forged.pfx -dc-ip 10.0.0.10
 | Sysmon | 10 | Accès aux clés privées (DPAPI) sur le serveur CA |
 | Security (DC) | **4768** | TGT **PKINIT** avec un certificat **non émis par la CA** (pas de 4886/4887 correspondant) |
 
-**Anomalie clé :** authentification PKINIT (4768 avec Certificate Info) **sans demande/émission (4886/4887)** enregistrée côté CA → certificat forgé hors ligne.
+**Anomalie clé :** authentification PKINIT (4768 avec Certificate Info) **sans demande/émission (4886/4887)** enregistrée côté CA  certificat forgé hors ligne.
 
 ## 5. Détection
 
 ### Logique
-Corréler chaque **auth par certificat (PKINIT)** avec l'existence d'une **émission (4887)** correspondante côté CA. Un certificat utilisé mais **jamais émis** = forgé. Nécessite corrélation CA ↔ DC → **cas d'usage IA**.
+Corréler chaque **auth par certificat (PKINIT)** avec l'existence d'une **émission (4887)** correspondante côté CA. Un certificat utilisé mais **jamais émis** = forgé. Nécessite corrélation CA  DC  **cas d'usage IA**.
 
 ### Règle Sigma
 ```yaml
@@ -69,7 +69,7 @@ falsepositives:
 ```
 
 ### Traduction SIEM
-- **XSOAR :** playbook comparant les serials des certificats utilisés (PKINIT) à la base d'émission de la CA → alerte si absent.
+- **XSOAR :** playbook comparant les serials des certificats utilisés (PKINIT) à la base d'émission de la CA  alerte si absent.
 - **Elastic :** `event.code:(4876 or 4877)` (export CA) — événement rare et sensible.
 
 ## 6. Contre-mesures / Hardening

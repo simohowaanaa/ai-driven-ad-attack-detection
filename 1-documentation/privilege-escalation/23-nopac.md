@@ -7,7 +7,7 @@
 | **Phase kill chain** | Privilege Escalation |
 | **CVE** | **CVE-2021-42278 + CVE-2021-42287** |
 | **Privilèges requis** | Un compte de domaine standard (+ MachineAccountQuota > 0) |
-| **Impact** | Critique (utilisateur standard → Domain Admin) |
+| **Impact** | Critique (utilisateur standard  Domain Admin) |
 
 ---
 
@@ -17,7 +17,7 @@ Chaîne de deux failles Kerberos :
 - **CVE-2021-42278** : absence de validation du format des `sAMAccountName` de comptes machine (normalement terminés par `$`).
 - **CVE-2021-42287** : quand un TGS demande un service dont le compte n'est pas trouvé, le KDC **cherche un compte au nom proche** (avec `$`).
 
-L'attaquant crée un compte machine, le **renomme** en `DC01` (sans `$`, identique à un DC), demande un TGT, puis **renomme** le compte. Lorsqu'il demande un TGS S4U2Self, le KDC ne trouve plus `DC01`, se rabat sur **`DC01$`** (le vrai DC) et émet un ticket **au privilège du DC** → l'attaquant devient DA. C'est **noPac**.
+L'attaquant crée un compte machine, le **renomme** en `DC01` (sans `$`, identique à un DC), demande un TGT, puis **renomme** le compte. Lorsqu'il demande un TGS S4U2Self, le KDC ne trouve plus `DC01`, se rabat sur **`DC01$`** (le vrai DC) et émet un ticket **au privilège du DC**  l'attaquant devient DA. C'est **noPac**.
 
 ## 2. Prérequis
 - Compte de domaine standard.
@@ -30,7 +30,7 @@ L'attaquant crée un compte machine, le **renomme** en `DC01` (sans `$`, identiq
 # noPac (Impacket / outil noPac.py)
 noPac.py domaine.local/user:pass -dc-ip 10.0.0.10 -dc-host DC01 --impersonate Administrator -use-ldap -shell
 
-# Manuellement : addcomputer → renommer en 'DC01' → getST S4U2Self → renommer
+# Manuellement : addcomputer  renommer en 'DC01'  getST S4U2Self  renommer
 ```
 
 ## 4. Télémétrie générée (logs)
@@ -76,7 +76,7 @@ level: critical
 - Surveiller 4741/4781 par des comptes non-admin.
 
 ## 7. Features pour l'agent IA
-- Séquence 4741 → 4781 → 4768/4769 par un utilisateur standard (feature de séquence).
+- Séquence 4741  4781  4768/4769 par un utilisateur standard (feature de séquence).
 - `sAMAccountName` ressemblant à un DC sans `$`.
 - Élévation vers 4672 juste après.
 

@@ -1,4 +1,4 @@
-# ⚔️ Attaque 02 — AS-REP Roasting
+#  Attaque 02 — AS-REP Roasting
 
 | | |
 |---|---|
@@ -8,27 +8,27 @@
 | **Cible** | `north.sevenkingdoms.local` — comptes sans pré-authentification |
 | **Compte attaquant** | **aucun compte nécessaire** (attaque sans authentification) |
 | **Outil** | impacket — `GetNPUsers.py` |
-| **Statut détection Wazuh** | 🔴 Invisible par défaut → Règle 100014 (Phase 5) |
+| **Statut détection Wazuh** |  Invisible par défaut  Règle 100014 (Phase 5) |
 
 ---
 
-## 1. 🧠 Description
+## 1.  Description
 
 > **Le concept en une phrase :** certains comptes AD ont une option qui désactive une vérification de sécurité — l'attaquant peut alors leur demander un ticket chiffré *sans même avoir de compte*, et tenter de craquer ce ticket hors ligne.
 
 Dans Kerberos, la **pré-authentification** est une protection : avant de recevoir un ticket, l'utilisateur doit prouver qu'il connaît son mot de passe (en chiffrant un timestamp). Cela empêche qu'un attaquant demande des tickets pour n'importe quel compte.
 
-**La faille :** si l'option `"Do not require Kerberos preauthentication"` est cochée sur un compte, cette protection est désactivée. N'importe qui — même sans compte dans le domaine — peut alors demander un ticket AS-REP pour ce compte. Ce ticket est chiffré avec le hash du mot de passe de la victime → crackable hors ligne.
+**La faille :** si l'option `"Do not require Kerberos preauthentication"` est cochée sur un compte, cette protection est désactivée. N'importe qui — même sans compte dans le domaine — peut alors demander un ticket AS-REP pour ce compte. Ce ticket est chiffré avec le hash du mot de passe de la victime  crackable hors ligne.
 
 **Ce qui rend cette attaque encore plus dangereuse que le Kerberoasting :** pas besoin d'être authentifié dans le domaine. Un attaquant qui a juste un accès réseau au DC peut l'exécuter.
 
-## 2. 🎯 Prérequis
+## 2.  Prérequis
 
 - Un **accès réseau** au contrôleur de domaine (port 88 — Kerberos)
 - Au moins un compte AD avec `"Do not require Kerberos preauthentication"` activé
 - **Aucun compte de domaine nécessaire** pour l'attaque elle-même
 
-## 3. 💻 Exécution
+## 3.  Exécution
 
 ### Étape 1 — Récupérer les AS-REP des comptes vulnérables
 
@@ -52,13 +52,13 @@ Si un compte est vulnérable, le DC renvoie directement un hash AS-REP au format
 hashcat -m 18200 asrep_hashes.txt wordlist.txt
 ```
 
-## 4. 📤 Résultat
+## 4.  Résultat
 
-Le hash AS-REP du compte vulnérable est récupéré. Si son mot de passe est dans la wordlist → compromis, sans avoir eu besoin d'aucun compte de domaine au départ.
+Le hash AS-REP du compte vulnérable est récupéré. Si son mot de passe est dans la wordlist  compromis, sans avoir eu besoin d'aucun compte de domaine au départ.
 
-## 5. 🛡️ Détection dans Wazuh — 🔴 invisible par défaut
+## 5.  Détection dans Wazuh —  invisible par défaut
 
-**Recherche (Threat Hunting → Events) :**
+**Recherche (Threat Hunting  Events) :**
 ```
 data.win.system.eventID:4768 and data.win.eventdata.preAuthType:0
 ```
@@ -71,16 +71,16 @@ data.win.system.eventID:4768 and data.win.eventdata.preAuthType:0
 
 **Ce qui manque :** activer l'audit `Kerberos Authentication Service` sur les DC, puis créer une règle qui alerte sur les `4768` avec `preAuthType: 0`. C'est l'objet de la règle `100014` (Phase 5).
 
-## 6. 🎓 Analyse & leçon
+## 6.  Analyse & leçon
 
 > **L'attaque zéro pré-requis.** Contrairement au Kerberoasting qui nécessite au moins un compte de domaine, l'AS-REP Roasting peut se faire depuis l'extérieur avec juste un accès réseau. Un compte avec cette option activée est une porte d'entrée potentielle dans le domaine.
 
 **Ce qu'il faut retenir :**
-- L'audit Kerberos est désactivé par défaut → l'attaque est totalement invisible.
+- L'audit Kerberos est désactivé par défaut  l'attaque est totalement invisible.
 - La détection passe par **deux étapes** : activer l'audit 4768 sur les DC, puis écrire une règle Wazuh ciblant `preAuthType: 0`.
 - La vraie correction est de **désactiver cette option** sur tous les comptes concernés (elle est rarement nécessaire).
 
-## 7. 🔧 Remédiation
+## 7.  Remédiation
 
 - **Désactiver** l'option `"Do not require Kerberos preauthentication"` sur tous les comptes (audit régulier via BloodHound ou PowerShell).
 - Si l'option est requise pour compatibilité : imposer un **mot de passe très long** sur ce compte.
@@ -88,4 +88,4 @@ data.win.system.eventID:4768 and data.win.eventdata.preAuthType:0
 
 ---
 
-⬅️ Retour à l'[index des attaques](../03-attaques.md)
+⬅ Retour à l'[index des attaques](../03-attaques.md)

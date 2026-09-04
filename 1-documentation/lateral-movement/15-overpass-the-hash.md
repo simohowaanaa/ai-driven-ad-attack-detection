@@ -21,7 +21,7 @@ L'**Overpass-the-Hash** convertit un **hash NTLM** (ou une clé AES) en un **vra
 ## 3. Procédure de simulation (lab)
 
 ```powershell
-# Mimikatz — hash → TGT
+# Mimikatz — hash  TGT
 sekurlsa::pth /user:admin /domain:domaine.local /ntlm:<hash> /run:powershell.exe
 # puis dans la nouvelle session : Rubeus asktgt, ou accès Kerberos
 ```
@@ -65,13 +65,13 @@ falsepositives:
 - **QRadar :** anomalie « compte demandant soudainement du RC4 ».
 
 ## 6. Contre-mesures / Hardening
-- **Désactiver RC4** → force l'usage d'AES et réduit la surface.
+- **Désactiver RC4**  force l'usage d'AES et réduit la surface.
 - Credential Guard, Protected Users.
 
 ## 7. Features pour l'agent IA
-- Changement du type de chiffrement Kerberos par compte (AES→RC4).
+- Changement du type de chiffrement Kerberos par compte (AESRC4).
 - TGT sans logon interactif traçable en amont.
-- Corrélation LSASS access → nouveau TGT.
+- Corrélation LSASS access  nouveau TGT.
 
 ## 8. Références
 - https://attack.mitre.org/techniques/T1550/002/

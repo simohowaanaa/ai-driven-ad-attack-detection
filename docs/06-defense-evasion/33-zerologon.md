@@ -17,7 +17,7 @@ Faille cryptographique dans **Netlogon (MS-NRPC)** : le mode de chiffrement **AE
 
 L'attaquant peut alors **réinitialiser le mot de passe machine du DC à une valeur vide** dans AD, puis effectuer un **DCSync** pour extraire tous les secrets (dont krbtgt). Non authentifié, ultra-rapide, dévastateur.
 
-> ⚠️ Réinitialiser le mot de passe du DC **casse le DC en production** s'il n'est pas restauré. En lab uniquement, et prévoir la restauration du secret machine.
+>  Réinitialiser le mot de passe du DC **casse le DC en production** s'il n'est pas restauré. En lab uniquement, et prévoir la restauration du secret machine.
 
 ## 2. Prérequis
 
@@ -26,7 +26,7 @@ L'attaquant peut alors **réinitialiser le mot de passe machine du DC à une val
 
 ## 3. Procédure de simulation (lab)
 
-> ⚠️ Lab isolé — peut rendre le DC inutilisable si le secret n'est pas restauré.
+>  Lab isolé — peut rendre le DC inutilisable si le secret n'est pas restauré.
 
 **Outils :** Impacket (`secretsdump.py`), scripts PoC (SecuraBV/zerologon, `set_empty_pw`).
 
@@ -58,7 +58,7 @@ python3 restorepassword.py DOMAINE.LOCAL/DC01@DC01 -target-ip 10.0.0.10 -hexpass
 | Security (DC) | 4662 | DCSync consécutif (voir fiche 08) |
 
 **Anomalies discriminantes :**
-- **4742 sur le compte machine d'un DC** (`DC01$`) modifié par un compte anormal / anonyme → signal quasi unique.
+- **4742 sur le compte machine d'un DC** (`DC01$`) modifié par un compte anormal / anonyme  signal quasi unique.
 - Rafale de tentatives Netlogon échouées juste avant.
 
 ## 5. Détection
@@ -99,7 +99,7 @@ level: critical
 
 - Événement 4742 ciblant un compte de DC (feature booléenne critique).
 - Volume de tentatives Netlogon échouées (5805/erreurs RPC) par source avant le succès.
-- Séquence caractéristique : rafale Netlogon → 4742 sur DC → 4662 DCSync (feature de séquence temporelle — cas d'usage idéal pour un modèle séquentiel).
+- Séquence caractéristique : rafale Netlogon  4742 sur DC  4662 DCSync (feature de séquence temporelle — cas d'usage idéal pour un modèle séquentiel).
 
 ## 8. Références
 

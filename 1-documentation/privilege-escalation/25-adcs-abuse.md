@@ -7,17 +7,17 @@
 | **Phase kill chain** | Privilege Escalation |
 | **CVE** | Diverses mauvaises configs (ESC1-8), CVE-2022-26923 (ESC alt.) |
 | **Privilèges requis** | Variable (souvent utilisateur standard) |
-| **Impact** | Critique (certificat → authentification en tant que DA) |
+| **Impact** | Critique (certificat  authentification en tant que DA) |
 
 ---
 
 ## 1. Description
 
-**AD Certificate Services (ADCS)** émet des certificats utilisables pour l'authentification Kerberos (PKINIT). De **mauvaises configurations de templates/CA** permettent à un attaquant d'obtenir un certificat **au nom d'un compte privilégié** — un certificat reste valide même après changement de mot de passe → **persistance**. Catégories (SpecterOps « Certified Pre-Owned ») :
+**AD Certificate Services (ADCS)** émet des certificats utilisables pour l'authentification Kerberos (PKINIT). De **mauvaises configurations de templates/CA** permettent à un attaquant d'obtenir un certificat **au nom d'un compte privilégié** — un certificat reste valide même après changement de mot de passe  **persistance**. Catégories (SpecterOps « Certified Pre-Owned ») :
 
 | Vecteur | Résumé |
 |---------|--------|
-| **ESC1** | Template autorisant un **SAN arbitraire** + auth client → certif au nom d'un DA |
+| **ESC1** | Template autorisant un **SAN arbitraire** + auth client  certif au nom d'un DA |
 | **ESC2** | Template « Any Purpose » ou pas d'EKU |
 | **ESC3** | Certificate Request Agent (enrollment agent) |
 | **ESC4** | ACL faibles sur le template (write) |
@@ -38,7 +38,7 @@ certipy find -u user@domaine.local -p pass -dc-ip 10.0.0.10 -vulnerable -stdout
 # ESC1 : demander un certif au nom d'un admin (SAN arbitraire)
 certipy req -u user@domaine.local -p pass -ca CA01 -template VulnTemplate -upn administrator@domaine.local
 
-# Authentifier avec le certificat → TGT + hash NT
+# Authentifier avec le certificat  TGT + hash NT
 certipy auth -pfx administrator.pfx -dc-ip 10.0.0.10
 ```
 
@@ -74,16 +74,16 @@ level: high
 
 ### Traduction SIEM
 - **Elastic :** `event.code:4886 or event.code:4887` (enrichir : demandeur ≠ SAN) ; `event.code:4768 and winlog.event_data.CertificateInfo:*`.
-- **XSOAR :** playbook comparant `Requester` vs `SubjectAltName` du certificat → alerte si divergence.
+- **XSOAR :** playbook comparant `Requester` vs `SubjectAltName` du certificat  alerte si divergence.
 
 ## 6. Contre-mesures / Hardening
 - Auditer avec `certipy find` / **PSPKIAudit** ; corriger les templates (retirer SAN arbitraire, EKU stricts, ACL).
 - Désactiver `EDITF_ATTRIBUTESUBJECTALTNAME2` (ESC6).
 - **EPA + désactiver HTTP** sur l'enrollment web (ESC8).
-- Mapping fort certificat↔compte (KB5014754).
+- Mapping fort certificatcompte (KB5014754).
 
 ## 7. Features pour l'agent IA
-- Divergence Requester ↔ SAN/UPN du certificat émis (feature d'enrichissement clé).
+- Divergence Requester  SAN/UPN du certificat émis (feature d'enrichissement clé).
 - TGT PKINIT pour un compte privilégié depuis un certificat fraîchement émis.
 - Émission de certificat par/pour un compte inhabituel.
 - Modifications de templates/CA (rares).

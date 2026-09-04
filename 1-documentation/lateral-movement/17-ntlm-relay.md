@@ -62,7 +62,7 @@ detection:
     condition: selection
 level: high
 ```
-> À corréler avec un mapping compte machine → IP attendue (sinon faux positifs).
+> À corréler avec un mapping compte machine  IP attendue (sinon faux positifs).
 
 ### Traduction SIEM
 - **Elastic :** `event.code:4624 and winlog.event_data.LogonType:"3" and winlog.event_data.AuthenticationPackageName:"NTLM" and winlog.event_data.TargetUserName:*$`
@@ -77,7 +77,7 @@ level: high
 ## 7. Features pour l'agent IA
 - Écart entre IP source d'un logon et IP attendue du compte (surtout comptes machine).
 - Détection de coercion (RPC MS-EFSR/MS-RPRN vers DC).
-- Séquence : coercion → logon NTLM relayé → action privilégiée (RBCD/cert).
+- Séquence : coercion  logon NTLM relayé  action privilégiée (RBCD/cert).
 
 ## 8. Références
 - https://attack.mitre.org/techniques/T1557/001/

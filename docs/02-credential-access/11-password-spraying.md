@@ -13,7 +13,7 @@
 
 ## 1. Description
 
-Au lieu de tester beaucoup de mots de passe sur un compte (brute force → lockout), le **password spraying** teste **un** mot de passe probable (`Été2025!`, `Welcome1`, `<Société>2025`) sur **beaucoup** de comptes. En restant sous le seuil de verrouillage par compte, l'attaquant évite les lock-out tout en trouvant les comptes faibles.
+Au lieu de tester beaucoup de mots de passe sur un compte (brute force  lockout), le **password spraying** teste **un** mot de passe probable (`Été2025!`, `Welcome1`, `<Société>2025`) sur **beaucoup** de comptes. En restant sous le seuil de verrouillage par compte, l'attaquant évite les lock-out tout en trouvant les comptes faibles.
 
 ## 2. Prérequis
 - Liste d'utilisateurs valides (voir fiches 01/04).

@@ -1,40 +1,40 @@
-# ⚔️ Phase 4 — Simulation des attaques & détection Wazuh
+#  Phase 4 — Simulation des attaques & détection Wazuh
 
-> **But :** rejouer les attaques documentées dans [`../docs/`](../docs/) sur le lab GOAD, puis **vérifier dans Wazuh** (Phase 3) qu'elles laissent une trace détectable. La démonstration centrale du PFA : **attaque → trace → détection.**
+> **But :** rejouer les attaques documentées dans [`../docs/`](../docs/) sur le lab GOAD, puis **vérifier dans Wazuh** (Phase 3) qu'elles laissent une trace détectable. La démonstration centrale du PFA : **attaque  trace  détection.**
 
 > **Méthode :** les outils (impacket, netexec) sont installés **directement sur l'hôte Azure** (qui voit le réseau du lab `192.168.56.0/24`) — pas besoin d'une VM Kali séparée.
 
 ---
 
-## 📁 Organisation
+##  Organisation
 Chaque attaque a **sa propre fiche** dans [`attaques/`](attaques/), au format standard défini par [`attaques/00-TEMPLATE.md`](attaques/00-TEMPLATE.md), avec les **captures intégrées** (exécution + détection).
 
 ---
 
-## 🗺️ Roadmap des attaques (faisables dans GOAD-Light)
+##  Roadmap des attaques (faisables dans GOAD-Light)
 
 Ordre logique d'une intrusion (kill chain), par catégorie :
 
 | # | Attaque | Catégorie | MITRE | Fiche | Statut | Détection Wazuh |
 |---|---------|-----------|-------|-------|:------:|-----------------|
-| 01 | Kerberoasting | Credential Access | T1558.003 | [01](attaques/01-kerberoasting.md) | ✅ | ✅ (rule 92652) |
-| 02 | AS-REP Roasting | Credential Access | T1558.004 | [02](attaques/02-asrep-roasting.md) | ✅ | ⚠️ angle mort (4768 non audité) |
-| 03 | Énumération (SMB/LDAP, users) | Recon | T1087 | [03](attaques/03-enumeration.md) | ✅ | 🔴 angle mort (recon furtive) |
-| 04 | LLMNR/NBT-NS Poisoning | Credential Access | T1557.001 | [04](attaques/04-llmnr-poisoning.md) | ✅ | 🔴 angle mort (empoisonnement réseau) |
-| 05 | Password Spraying | Credential Access | T1110.003 | [05](attaques/05-password-spraying.md) | ✅ | ✅ détecté (rafale de 4625) |
-| 06 | DCSync | Credential Access | T1003.006 | [06](attaques/06-dcsync.md) | ✅ | ⚠️ angle mort critique (4662 non audité) |
-| 07 | Abus ACL (GenericWrite → DA) | Privilege Escalation | T1222.001 | [07](attaques/07-acl-abuse.md) | ✅ | 🟢 détecté (Event 4728 ajout Domain Admins) |
-| 08 | ADCS ESC1 (certificat) | Privilege Escalation | T1649 | [08](attaques/08-adcs-esc1.md) | ✅ | 🔴 angle mort critique (audit ADCS+Kerberos off) |
-| 09 | Pass-the-Hash | Lateral Movement | T1550.002 | [09](attaques/09-pass-the-hash.md) | ✅ | 🟡 partielle (4624 visibles, non alertés) |
-| 10 | MSSQL (xp_cmdshell RCE) | Lateral Movement | T1210 | [10](attaques/10-mssql-rce.md) | ✅ | 🔴 angle mort (audit processus 4688 off) |
-| 11 | Golden Ticket | Persistence | T1558.001 | [11](attaques/11-golden-ticket.md) | ✅ | 🟡 anomalie (compte inexistant) → Phase 6 IA |
-| 12 | Abus de trust inter-domaine | Domain Trusts | T1482 | [12](attaques/12-trust-inter-domaine.md) | ✅ | 🟡 anomalie (compte forgé, incohérence nom/SID) → Phase 6 IA |
+| 01 | Kerberoasting | Credential Access | T1558.003 | [01](attaques/01-kerberoasting.md) |  |  (rule 92652) |
+| 02 | AS-REP Roasting | Credential Access | T1558.004 | [02](attaques/02-asrep-roasting.md) |  |  angle mort (4768 non audité) |
+| 03 | Énumération (SMB/LDAP, users) | Recon | T1087 | [03](attaques/03-enumeration.md) |  |  angle mort (recon furtive) |
+| 04 | LLMNR/NBT-NS Poisoning | Credential Access | T1557.001 | [04](attaques/04-llmnr-poisoning.md) |  |  angle mort (empoisonnement réseau) |
+| 05 | Password Spraying | Credential Access | T1110.003 | [05](attaques/05-password-spraying.md) |  |  détecté (rafale de 4625) |
+| 06 | DCSync | Credential Access | T1003.006 | [06](attaques/06-dcsync.md) |  |  angle mort critique (4662 non audité) |
+| 07 | Abus ACL (GenericWrite  DA) | Privilege Escalation | T1222.001 | [07](attaques/07-acl-abuse.md) |  |  détecté (Event 4728 ajout Domain Admins) |
+| 08 | ADCS ESC1 (certificat) | Privilege Escalation | T1649 | [08](attaques/08-adcs-esc1.md) |  |  angle mort critique (audit ADCS+Kerberos off) |
+| 09 | Pass-the-Hash | Lateral Movement | T1550.002 | [09](attaques/09-pass-the-hash.md) |  |  partielle (4624 visibles, non alertés) |
+| 10 | MSSQL (xp_cmdshell RCE) | Lateral Movement | T1210 | [10](attaques/10-mssql-rce.md) |  |  angle mort (audit processus 4688 off) |
+| 11 | Golden Ticket | Persistence | T1558.001 | [11](attaques/11-golden-ticket.md) |  |  anomalie (compte inexistant)  Phase 6 IA |
+| 12 | Abus de trust inter-domaine | Domain Trusts | T1482 | [12](attaques/12-trust-inter-domaine.md) |  |  anomalie (compte forgé, incohérence nom/SID)  Phase 6 IA |
 
 > Liste **réaliste** (~12 attaques solides) plutôt que « les 48 » : certaines des 48 documentées nécessitent des composants absents de GOAD-Light (Exchange, forêts multiples, PKI avancée). Ça reste une **couverture large et démonstrative**.
 
 ---
 
-## 🔑 Comptes GOAD utilisés (lab isolé)
+##  Comptes GOAD utilisés (lab isolé)
 
 | Domaine | Compte | Mot de passe | Note |
 |---------|--------|--------------|------|
@@ -42,10 +42,10 @@ Ordre logique d'une intrusion (kill chain), par catégorie :
 | `north.sevenkingdoms.local` (DC02 · .11) | `arya.stark` | `Needle` | utilisateur |
 | `north.sevenkingdoms.local` | `eddard.stark` | `FightP3aceAndHonor!` | **Domain Admin** |
 
-> ⚠️ Ces identifiants ne valent **que** pour ce lab d'entraînement isolé. Les attaques ne se pratiquent JAMAIS sur un réseau réel.
+>  Ces identifiants ne valent **que** pour ce lab d'entraînement isolé. Les attaques ne se pratiquent JAMAIS sur un réseau réel.
 
 ---
 
-## 🖼️ Convention des captures
+##  Convention des captures
 Rangées dans [`screenshots/attacks/`](screenshots/attacks/) :
 `attack-NN-<nom>-command.png` (exécution) et `attack-NN-<nom>-wazuh.png` (détection).

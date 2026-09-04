@@ -1,4 +1,4 @@
-# 📖 Glossaire — Active Directory & Kerberos
+#  Glossaire — Active Directory & Kerberos
 
 > Définitions courtes des termes techniques utilisés dans les fiches d'attaques, pour une lecture autonome du rapport.
 
@@ -53,4 +53,4 @@
 
 ---
 
-⬅️ Retour à la [simulation des attaques](03-attaques.md)
+⬅ Retour à la [simulation des attaques](03-attaques.md)

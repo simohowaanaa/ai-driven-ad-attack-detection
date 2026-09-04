@@ -27,7 +27,7 @@ nxc ldap 10.0.0.10 -u othmane -p Marketing2025 -M laps
 pyLAPS.py --action get -d datacorp.local -u othmane -p Marketing2025
 ```
 
-**Résultat :** `PC-DESIGN-07 → LAPS password: X9$kL2!mQ...`
+**Résultat :** `PC-DESIGN-07  LAPS password: X9$kL2!mQ...`
 
 ## 4. Télémétrie générée (logs)
 
@@ -65,9 +65,9 @@ level: medium
 - Activer l'audit de lecture de l'attribut.
 
 ## 7. Features pour l'agent IA
-- Nombre de machines dont le LAPS est lu par un même compte / fenêtre (lecture en masse = 🚨).
+- Nombre de machines dont le LAPS est lu par un même compte / fenêtre (lecture en masse = ).
 - Compte lecteur hors du groupe de délégation attendu.
-- Corrélation : lecture LAPS → logon admin sur la machine correspondante.
+- Corrélation : lecture LAPS  logon admin sur la machine correspondante.
 
 ## 8. Références
 - https://attack.mitre.org/techniques/T1552/

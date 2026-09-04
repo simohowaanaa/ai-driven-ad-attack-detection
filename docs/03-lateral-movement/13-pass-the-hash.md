@@ -23,7 +23,7 @@ L'authentification NTLM ne vérifie pas le mot de passe en clair mais son **hash
 
 ## 3. Procédure de simulation (lab)
 
-> ⚠️ Lab isolé uniquement.
+>  Lab isolé uniquement.
 
 **Outils :** Impacket (`psexec.py`, `wmiexec.py`), Mimikatz, CrackMapExec/NetExec.
 
@@ -51,17 +51,17 @@ sekurlsa::pth /user:Administrator /domain:domaine.local /ntlm:<hash> /run:cmd.ex
 | Security (cible) | **4624** | Logon réussi — **Logon Type 3** (réseau), **Auth Package = NTLM** |
 | Security (cible) | 4672 | Special privileges assigned (si admin) |
 | Security (cible) | 4776 | Credential validation (NTLM) |
-| Sysmon | 1 / 3 | Process creation / Network (psexec → services.exe, cmd) |
+| Sysmon | 1 / 3 | Process creation / Network (psexec  services.exe, cmd) |
 
 **Anomalies discriminantes :**
-- Logon **NTLM (Type 3)** vers une ressource où l'on attendrait Kerberos (accès par IP plutôt que par nom → NTLM).
+- Logon **NTLM (Type 3)** vers une ressource où l'on attendrait Kerberos (accès par IP plutôt que par nom  NTLM).
 - `Logon Process = NtLmSsp`.
 - Compte à privilèges se connectant depuis une **station de travail** vers une autre station (mouvement latéral).
 
 ## 5. Détection
 
 ### Logique de détection
-Repérer les **logons NTLM Type 3** avec des comptes privilégiés, surtout station→station ou par IP, et les enchaînements rapides d'authentifications d'un même compte vers plusieurs hôtes.
+Repérer les **logons NTLM Type 3** avec des comptes privilégiés, surtout stationstation ou par IP, et les enchaînements rapides d'authentifications d'un même compte vers plusieurs hôtes.
 
 ### Règle Sigma
 ```yaml
@@ -96,7 +96,7 @@ level: medium
 
 - Nombre d'hôtes distincts atteints par un compte via NTLM Type 3 / fenêtre (fan-out latéral).
 - Ratio NTLM vs Kerberos par compte.
-- Direction du logon (station→station = anormal).
+- Direction du logon (stationstation = anormal).
 - Nouveauté de la paire (compte, hôte cible) vs baseline.
 - Authentification par IP vs FQDN.
 

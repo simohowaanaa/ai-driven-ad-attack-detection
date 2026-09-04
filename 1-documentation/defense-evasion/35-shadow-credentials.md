@@ -24,7 +24,7 @@ L'attribut **`msDS-KeyCredentialLink`** stocke les clés publiques utilisées pa
 ```bash
 # Whisker (Windows) / pyWhisker (Linux) / Certipy shadow
 certipy shadow auto -u attacker@domaine.local -p pass -account 'targetuser'
-# → ajoute une KeyCredential, obtient un TGT + le hash NT de la cible
+#  ajoute une KeyCredential, obtient un TGT + le hash NT de la cible
 ```
 ```powershell
 Whisker.exe add /target:targetuser
@@ -70,7 +70,7 @@ falsepositives:
 
 ## 7. Features pour l'agent IA
 - Modification de `msDS-KeyCredentialLink` par un principal ≠ serveur d'enrôlement WHfB.
-- Séquence : write KeyCredentialLink → TGT PKINIT du compte cible.
+- Séquence : write KeyCredentialLink  TGT PKINIT du compte cible.
 - Cible = compte privilégié / DC (feature de sévérité).
 
 ## 8. Références

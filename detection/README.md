@@ -13,9 +13,9 @@ Ce dossier contient la réponse en deux temps :
 ```
 Problème (Phase 4)              Solution (Phase 5)            Solution (Phase 6)
 ──────────────────              ──────────────────            ──────────────────
-6 attaques invisibles    →      Activer les audits      →     Pour les attaques
+6 attaques invisibles          Activer les audits           Pour les attaques
 dans Wazuh par défaut           + écrire 7 règles             sans signature fixe
-                                Wazuh sur-mesure              → agent IA
+                                Wazuh sur-mesure               agent IA
 ```
 
 ---
@@ -48,15 +48,15 @@ Une fois les événements visibles, encore faut-il que Wazuh les reconnaisse com
 
 | ID | Attaque détectée | Résultat |
 |:--:|-----------------|----------|
-| 100010 | DCSync | ✅ 3 hits — `tywin.lannister` identifié comme attaquant |
-| 100011 | Kerberoasting | ✅ 3 hits — tickets RC4 détectés |
-| 100012 | ADCS ESC1 | ✅ 2 hits — certificat `administrator` émis et capturé |
-| 100013 | MSSQL RCE | ✅ 7 hits — commande `xp_cmdshell whoami` capturée |
-| 100014 | AS-REP Roasting | ✅ 1 hit — compte sans pré-authentification détecté |
-| 100017 | Pass-the-Hash | ✅ 5 hits — logon NTLM de type 3 détecté |
-| 100019 | Trust Abuse | ✅ 18 hits — mouvement cross-domain NORTH→SEVENKINGDOMS |
+| 100010 | DCSync |  3 hits — `tywin.lannister` identifié comme attaquant |
+| 100011 | Kerberoasting |  3 hits — tickets RC4 détectés |
+| 100012 | ADCS ESC1 |  2 hits — certificat `administrator` émis et capturé |
+| 100013 | MSSQL RCE |  7 hits — commande `xp_cmdshell whoami` capturée |
+| 100014 | AS-REP Roasting |  1 hit — compte sans pré-authentification détecté |
+| 100017 | Pass-the-Hash |  5 hits — logon NTLM de type 3 détecté |
+| 100019 | Trust Abuse |  18 hits — mouvement cross-domain NORTHSEVENKINGDOMS |
 
-→ [Lire la documentation complète Phase 5](01-regles-wazuh.md)
+ [Lire la documentation complète Phase 5](01-regles-wazuh.md)
 
 ---
 
@@ -73,7 +73,7 @@ La solution : ne pas chercher une signature fixe, mais détecter un **comporteme
 ### Comment ça marche
 
 ```
-Wazuh OpenSearch     →    Feature engineering      →    Isolation Forest    →    Rapport
+Wazuh OpenSearch         Feature engineering          Isolation Forest        Rapport
 (5 000 alertes/24h)       10 variables par compte        scikit-learn              d'anomalies
                           construites depuis les logs
 ```
@@ -107,7 +107,7 @@ python3 anomaly_detection.py /tmp/wazuh_alerts.json
 
 **Dépendances :** `pip install scikit-learn pandas numpy`
 
-→ [Lire la documentation complète Phase 6](02-agent-ia.md) · [Voir le script Python](anomaly_detection.py)
+ [Lire la documentation complète Phase 6](02-agent-ia.md) · [Voir le script Python](anomaly_detection.py)
 
 ---
 
@@ -115,13 +115,13 @@ python3 anomaly_detection.py /tmp/wazuh_alerts.json
 
 | Attaque | Règle (Phase 5) | Agent IA (Phase 6) |
 |---------|:---------------:|:-----------------:|
-| DCSync | ✅ | — |
-| Kerberoasting | ✅ | — |
-| ADCS ESC1 | ✅ | — |
-| MSSQL RCE | ✅ | ✅ confirmé |
-| AS-REP Roasting | ✅ | — |
-| Pass-the-Hash | ✅ | ✅ confirmé |
-| Trust Abuse | ✅ | — |
-| **Golden Ticket** | ❌ indétectable | ✅ détecté |
-| Énumération LDAP | ❌ indétectable | ⚠️ données insuffisantes |
-| LLMNR Poisoning | ❌ attaque réseau | ❌ hors périmètre |
+| DCSync |  | — |
+| Kerberoasting |  | — |
+| ADCS ESC1 |  | — |
+| MSSQL RCE |  |  confirmé |
+| AS-REP Roasting |  | — |
+| Pass-the-Hash |  |  confirmé |
+| Trust Abuse |  | — |
+| **Golden Ticket** |  indétectable |  détecté |
+| Énumération LDAP |  indétectable |  données insuffisantes |
+| LLMNR Poisoning |  attaque réseau |  hors périmètre |

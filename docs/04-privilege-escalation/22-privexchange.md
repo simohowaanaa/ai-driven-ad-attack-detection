@@ -13,7 +13,7 @@
 
 ## 1. Description
 
-Historiquement, **Exchange** dispose de droits **`WriteDacl`** sur l'objet domaine (groupe `Exchange Windows Permissions`). La fonctionnalité **EWS PushSubscription** peut être forcée à faire **authentifier le serveur Exchange (compte machine, privilégié)** vers l'attaquant. En **relayant** cette authentification vers LDAP, l'attaquant écrit une ACL lui octroyant des droits **DCSync** → compromission du domaine. C'est une chaîne coercion + relais (voir fiche 17) exploitant une mauvaise config Exchange.
+Historiquement, **Exchange** dispose de droits **`WriteDacl`** sur l'objet domaine (groupe `Exchange Windows Permissions`). La fonctionnalité **EWS PushSubscription** peut être forcée à faire **authentifier le serveur Exchange (compte machine, privilégié)** vers l'attaquant. En **relayant** cette authentification vers LDAP, l'attaquant écrit une ACL lui octroyant des droits **DCSync**  compromission du domaine. C'est une chaîne coercion + relais (voir fiche 17) exploitant une mauvaise config Exchange.
 
 ## 2. Prérequis
 - Un compte avec boîte mail Exchange.
@@ -23,7 +23,7 @@ Historiquement, **Exchange** dispose de droits **`WriteDacl`** sur l'objet domai
 ## 3. Procédure de simulation (lab)
 
 ```bash
-# 1. Relais Exchange → LDAP, octroi de DCSync à l'attaquant
+# 1. Relais Exchange  LDAP, octroi de DCSync à l'attaquant
 ntlmrelayx.py -t ldap://dc01 --escalate-user attacker
 
 # 2. Forcer Exchange à s'authentifier (EWS push notification)
@@ -71,9 +71,9 @@ level: critical
 - Retirer `WriteDacl` d'Exchange sur l'objet domaine.
 
 ## 7. Features pour l'agent IA
-- Modification de la DACL de l'objet domaine (événement rarissime → alerte forte).
+- Modification de la DACL de l'objet domaine (événement rarissime  alerte forte).
 - Authentification d'un compte machine de service depuis une IP hors baseline.
-- Séquence coercion → relais → DCSync.
+- Séquence coercion  relais  DCSync.
 
 ## 8. Références
 - https://dirkjanm.io/abusing-exchange-one-api-call-away-from-domain-admin/

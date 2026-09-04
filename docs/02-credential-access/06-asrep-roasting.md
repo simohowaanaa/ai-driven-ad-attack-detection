@@ -24,7 +24,7 @@ L'attaquant récupère cette AS-REP et casse le hash **hors-ligne**. Contraireme
 
 ## 3. Procédure de simulation (lab)
 
-> ⚠️ Lab isolé uniquement.
+>  Lab isolé uniquement.
 
 **Outils :** Impacket (`GetNPUsers.py`), Rubeus, Hashcat.
 
@@ -41,7 +41,7 @@ GetNPUsers.py DOMAINE.LOCAL/user:password -request -dc-ip 10.0.0.10 -outputfile 
 hashcat -m 18200 asrep.hash rockyou.txt
 ```
 
-**Résultat attendu :** hash `$krb5asrep$23$user@DOMAIN...` → mot de passe en clair.
+**Résultat attendu :** hash `$krb5asrep$23$user@DOMAIN...`  mot de passe en clair.
 
 ## 4. Télémétrie générée (logs)
 
@@ -51,8 +51,8 @@ hashcat -m 18200 asrep.hash rockyou.txt
 | Security (DC) | **4768** | TGT (AS-REQ) requested |
 
 **Champs discriminants du 4768 :**
-- `Pre-Authentication Type = 0` → **AS-REP sans pré-auth** (signal central).
-- `Ticket Encryption Type = 0x17` (RC4) → cassage facilité.
+- `Pre-Authentication Type = 0`  **AS-REP sans pré-auth** (signal central).
+- `Ticket Encryption Type = 0x17` (RC4)  cassage facilité.
 - Plusieurs 4768 avec preauth type 0 depuis une même source.
 
 ## 5. Détection

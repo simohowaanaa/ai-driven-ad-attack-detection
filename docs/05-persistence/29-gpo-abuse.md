@@ -13,7 +13,7 @@
 
 ## 1. Description
 
-Une **GPO** s'applique à toutes les machines/utilisateurs de l'OU (ou du domaine) à laquelle elle est liée. Qui peut **modifier une GPO** peut pousser : une **tâche planifiée**, un script de démarrage, un membre de groupe local (`Restricted Groups` → ajouter son compte aux admins locaux), etc. → **exécution de code à grande échelle** ou persistance. Souvent découvert via BloodHound (`GenericWrite`/`WriteDacl` sur un objet GPO).
+Une **GPO** s'applique à toutes les machines/utilisateurs de l'OU (ou du domaine) à laquelle elle est liée. Qui peut **modifier une GPO** peut pousser : une **tâche planifiée**, un script de démarrage, un membre de groupe local (`Restricted Groups`  ajouter son compte aux admins locaux), etc.  **exécution de code à grande échelle** ou persistance. Souvent découvert via BloodHound (`GenericWrite`/`WriteDacl` sur un objet GPO).
 
 ## 2. Prérequis
 - Droit d'écriture sur une GPO (`gPCFileSysPath` dans SYSVOL + objet GPC).

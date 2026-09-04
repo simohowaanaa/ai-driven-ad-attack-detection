@@ -70,7 +70,7 @@ level: high
 - Surveiller l'accès à l'objet `BCKUPKEY`.
 
 ## 7. Features pour l'agent IA
-- Accès à l'objet `BCKUPKEY` du domaine (événement extrêmement rare → alerte forte).
+- Accès à l'objet `BCKUPKEY` du domaine (événement extrêmement rare  alerte forte).
 - Volume de masterkeys déchiffrées sur un hôte.
 - Corrélation avec un accès LSASS / privilèges DA récents.
 

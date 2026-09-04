@@ -13,7 +13,7 @@
 
 ## 1. Description
 
-Le **Diamond Ticket** est une évolution furtive du Golden Ticket. Au lieu de **forger** un TGT de toutes pièces (Golden — détectable par un TGS sans TGT), l'attaquant **demande un vrai TGT au DC** (4768 légitime), puis le **déchiffre avec la clé krbtgt**, **modifie le PAC** (ajoute des groupes privilégiés) et le **re-chiffre**. Le ticket conserve donc des métadonnées cohérentes avec une émission légitime → beaucoup plus difficile à détecter.
+Le **Diamond Ticket** est une évolution furtive du Golden Ticket. Au lieu de **forger** un TGT de toutes pièces (Golden — détectable par un TGS sans TGT), l'attaquant **demande un vrai TGT au DC** (4768 légitime), puis le **déchiffre avec la clé krbtgt**, **modifie le PAC** (ajoute des groupes privilégiés) et le **re-chiffre**. Le ticket conserve donc des métadonnées cohérentes avec une émission légitime  beaucoup plus difficile à détecter.
 
 ## 2. Prérequis
 - **Clé AES du krbtgt** (via DCSync/NTDS).
@@ -38,7 +38,7 @@ Rubeus.exe diamond /krbkey:<aes256_krbtgt> /user:lowpriv /password:pass /enctype
 ## 5. Détection
 
 ### Logique
-Comparer les **groupes déclarés dans le PAC** (visibles côté service/DC) avec l'appartenance **réelle** du compte dans AD. Un écart = PAC falsifié. Nécessite un enrichissement (état AD) → **fort cas d'usage IA**.
+Comparer les **groupes déclarés dans le PAC** (visibles côté service/DC) avec l'appartenance **réelle** du compte dans AD. Un écart = PAC falsifié. Nécessite un enrichissement (état AD)  **fort cas d'usage IA**.
 
 ### Règle Sigma (conceptuelle)
 ```yaml
@@ -57,7 +57,7 @@ falsepositives:
 ```
 
 ### Traduction SIEM
-- **Enrichissement XSOAR :** playbook qui compare, pour un logon privilégié, les SID du PAC aux groupes réels (requête LDAP) → alerte si écart.
+- **Enrichissement XSOAR :** playbook qui compare, pour un logon privilégié, les SID du PAC aux groupes réels (requête LDAP)  alerte si écart.
 
 ## 6. Contre-mesures / Hardening
 - Rotation double du **krbtgt** (invalide les tickets forgés).

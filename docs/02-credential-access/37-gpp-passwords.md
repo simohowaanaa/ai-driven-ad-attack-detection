@@ -13,7 +13,7 @@
 
 ## 1. Description
 
-Les **Group Policy Preferences (GPP)** permettaient de pousser des configurations (créer un compte admin local, mapper un lecteur…) contenant parfois un **mot de passe**. Ce mot de passe était stocké dans un fichier XML dans **SYSVOL** (partage lisible par tout le domaine), chiffré en AES… mais **Microsoft a publié la clé AES** ! N'importe quel compte peut donc lire ces fichiers et **déchiffrer le mot de passe**. Souvent un compte **admin local identique sur tout le parc** → compromission massive.
+Les **Group Policy Preferences (GPP)** permettaient de pousser des configurations (créer un compte admin local, mapper un lecteur…) contenant parfois un **mot de passe**. Ce mot de passe était stocké dans un fichier XML dans **SYSVOL** (partage lisible par tout le domaine), chiffré en AES… mais **Microsoft a publié la clé AES** ! N'importe quel compte peut donc lire ces fichiers et **déchiffrer le mot de passe**. Souvent un compte **admin local identique sur tout le parc**  compromission massive.
 
 ## 2. Prérequis
 - Un compte de domaine (lecture de `\\domaine\SYSVOL`).
@@ -73,7 +73,7 @@ level: medium
 ## 7. Features pour l'agent IA
 - Accès aux fichiers GPP `*.xml` dans SYSVOL par un compte inhabituel.
 - Recherche récursive de `cpassword` (motif de scan).
-- Corrélation : lecture GPP → connexion admin local sur plusieurs machines.
+- Corrélation : lecture GPP  connexion admin local sur plusieurs machines.
 
 ## 8. Références
 - https://attack.mitre.org/techniques/T1552/006/
